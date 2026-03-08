@@ -116,6 +116,11 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/sessions?payment=cancelled`,
     });
 
+    // Only create payment record if checkout session has a payment intent
+    if (!checkoutSession.payment_intent) {
+      throw new Error("Checkout session created but no payment intent returned");
+    }
+
     // Create payment record
     await supabaseAdmin.from("payments").insert({
       student_id: session.student_id,
