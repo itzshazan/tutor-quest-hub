@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { CalendarDays, MessageSquare, UserCog, Star, Users, BookOpen, CheckCircle, XCircle, IndianRupee, Wallet } from "lucide-react";
+import { CalendarDays, MessageSquare, UserCog, Star, Users, BookOpen, CheckCircle, XCircle, IndianRupee, Wallet, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
