@@ -137,6 +137,13 @@ const Settings = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    
+    // Validate phone before saving
+    if (profile.phone.trim() && !validatePhone(profile.phone)) {
+      toast({ title: "Invalid phone number", description: phoneError, variant: "destructive" });
+      return;
+    }
+    
     setSaving(true);
 
     try {
