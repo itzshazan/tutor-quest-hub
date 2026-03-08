@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
+import { AnimatePresence, motion } from "framer-motion";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -25,6 +26,43 @@ import AdminReviews from "./pages/admin/AdminReviews";
 
 const queryClient = new QueryClient();
 
+const pageTransition = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const },
+};
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div key={location.pathname} {...pageTransition}>
+        <Routes location={location}>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/find-tutors" element={<FindTutors />} />
+          <Route path="/tutor/setup" element={<TutorSetup />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/sessions" element={<Sessions />} />
+          <Route path="/payments" element={<PaymentHistory />} />
+          <Route path="/tutor/:id" element={<TutorProfile />} />
+          <Route path="/dashboard/student" element={<StudentDashboard />} />
+          <Route path="/dashboard/tutor" element={<TutorDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/tutors" element={<AdminTutors />} />
+          <Route path="/admin/sessions" element={<AdminSessions />} />
+          <Route path="/admin/reviews" element={<AdminReviews />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
     <QueryClientProvider client={queryClient}>
@@ -33,26 +71,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/find-tutors" element={<FindTutors />} />
-              <Route path="/tutor/setup" element={<TutorSetup />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/sessions" element={<Sessions />} />
-              <Route path="/payments" element={<PaymentHistory />} />
-              <Route path="/tutor/:id" element={<TutorProfile />} />
-              <Route path="/dashboard/student" element={<StudentDashboard />} />
-              <Route path="/dashboard/tutor" element={<TutorDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/tutors" element={<AdminTutors />} />
-              <Route path="/admin/sessions" element={<AdminSessions />} />
-              <Route path="/admin/reviews" element={<AdminReviews />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AnimatedRoutes />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
