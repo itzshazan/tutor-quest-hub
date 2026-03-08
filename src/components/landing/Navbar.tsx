@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -59,6 +59,9 @@ const Navbar = () => {
               <Button variant="ghost" size="sm" asChild className="gap-1.5">
                 <Link to="/messages"><MessageSquare className="h-4 w-4" /> Messages</Link>
               </Button>
+              <Button variant="ghost" size="sm" asChild className="gap-1.5">
+                <Link to="/sessions"><CalendarDays className="h-4 w-4" /> Sessions</Link>
+              </Button>
               {incompleteProfile && (
                 <Button variant="outline" size="sm" asChild className="gap-1.5 border-accent text-accent-foreground">
                   <Link to="/tutor/setup"><UserCog className="h-4 w-4" /> Complete Profile</Link>
@@ -101,6 +104,11 @@ const Navbar = () => {
                   <Button variant="outline" size="sm" className="gap-1.5" asChild>
                     <Link to="/messages" onClick={() => setMobileOpen(false)}>
                       <MessageSquare className="h-4 w-4" /> Messages
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <Link to="/sessions" onClick={() => setMobileOpen(false)}>
+                      <CalendarDays className="h-4 w-4" /> Sessions
                     </Link>
                   </Button>
                   {incompleteProfile && (

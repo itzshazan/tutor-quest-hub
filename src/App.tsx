@@ -11,6 +11,7 @@ import TutorProfile from "./pages/TutorProfile";
 import FindTutors from "./pages/FindTutors";
 import TutorSetup from "./pages/TutorSetup";
 import Messages from "./pages/Messages";
+import Sessions from "./pages/Sessions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/find-tutors" element={<FindTutors />} />
             <Route path="/tutor/setup" element={<TutorSetup />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/sessions" element={<Sessions />} />
             <Route path="/tutor/:id" element={<TutorProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
