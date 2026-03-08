@@ -107,12 +107,11 @@ const Sessions = () => {
       const enriched = await Promise.all(
         data.map(async (s) => {
           const otherId = s.student_id === user.id ? s.tutor_id : s.student_id;
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name, avatar_url")
-            .eq("user_id", otherId)
-            .single();
-          return { ...s, other_user: profile || { full_name: "Unknown", avatar_url: null } };
+          const [{ data: profile }, { data: payment }] = await Promise.all([
+            supabase.from("profiles").select("full_name, avatar_url").eq("user_id", otherId).single(),
+            supabase.from("payments").select("id, payment_status, amount, tutor_earnings, platform_commission").eq("session_id", s.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+          ]);
+          return { ...s, other_user: profile || { full_name: "Unknown", avatar_url: null }, payment };
         })
       );
       setSessions(enriched as Session[]);
