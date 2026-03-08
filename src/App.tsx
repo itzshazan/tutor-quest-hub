@@ -12,6 +12,7 @@ import { RoleGuard } from "@/components/guards/RoleGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { SkipToContent } from "@/components/SkipToContent";
 
 // Eager-loaded (critical path)
 import Index from "./pages/Index";
