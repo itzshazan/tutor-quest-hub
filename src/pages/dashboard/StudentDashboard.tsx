@@ -297,8 +297,8 @@ const StudentDashboard = () => {
                 sessions.map((s) => {
                   const statusDisplay = getStatusDisplay(s);
                   const needsPayment = s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed" || s.payment_status === "pending");
-                  return (
-                    <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
+                    return (
+                    <div key={s.id} className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="space-y-1">
                         <p className="font-medium text-foreground">{s.subject}</p>
                         <p className="text-sm text-muted-foreground">with {s.tutor_name}</p>
@@ -306,7 +306,7 @@ const StudentDashboard = () => {
                           {format(new Date(s.session_date), "MMM d, yyyy")} · {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 self-start sm:self-center">
                         {needsPayment && (
                           <Button size="sm" className="h-7 gap-1 text-xs" onClick={() => handlePay(s.id)} disabled={payingSessionId === s.id}>
                             {payingSessionId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}

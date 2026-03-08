@@ -134,7 +134,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 24, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-            className="mt-8 text-display-lg text-foreground md:text-[3.5rem]"
+            className="mt-8 text-2xl font-bold text-foreground sm:text-display-lg md:text-[3.5rem]"
           >
             Find the perfect tutor,{" "}
             <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">

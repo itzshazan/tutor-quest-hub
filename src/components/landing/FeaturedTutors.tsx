@@ -136,13 +136,13 @@ const FeaturedTutors = () => {
                         <Star className="h-3.5 w-3.5 fill-accent text-accent" /> {t.rating || 0}
                       </span>
                     </div>
-                    <div className="mt-5 flex items-center justify-between border-t pt-5" style={{ transform: "translateZ(20px)" }}>
+                    <div className="mt-5 flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between" style={{ transform: "translateZ(20px)" }}>
                       <p className="text-lg font-bold text-foreground">₹{t.hourly_rate || 0}/hr</p>
                       <div className="flex gap-2">
-                        <Button size="sm" className="rounded-full px-5" asChild>
+                        <Button size="sm" className="flex-1 rounded-full px-4 sm:flex-none sm:px-5" asChild>
                           <Link to={`/tutor/${t.user_id}`}>View Profile</Link>
                         </Button>
-                        <Button size="sm" variant="outline" className="rounded-full px-5" asChild>
+                        <Button size="sm" variant="outline" className="flex-1 rounded-full px-4 sm:flex-none sm:px-5" asChild>
                           <Link to={`/messages?tutor=${t.user_id}`}>Contact</Link>
                         </Button>
                       </div>
