@@ -1,9 +1,10 @@
-import { Search, Users, MessageCircle, CalendarCheck } from "lucide-react";
+import { Search, Users, MessageCircle, CalendarCheck, MapPin } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 const steps = [
-  { icon: Search, title: "Search Tutors", desc: "Enter your subject and location to find nearby tutors." },
-  { icon: Users, title: "Compare Tutors", desc: "View profiles, ratings, experience, and reviews." },
+  { icon: Search, title: "Search Tutors", desc: "Enter your subject, location, and grade level to find nearby tutors." },
+  { icon: MapPin, title: "Find Nearby", desc: "Discover qualified tutors in your local area using location-based search." },
+  { icon: Users, title: "Compare Tutors", desc: "View profiles, ratings, experience, and reviews side by side." },
   { icon: MessageCircle, title: "Contact Tutor", desc: "Message tutors directly through the platform." },
   { icon: CalendarCheck, title: "Schedule Session", desc: "Arrange convenient offline tutoring sessions." },
 ];
