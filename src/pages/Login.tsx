@@ -26,6 +26,22 @@ const Login = () => {
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
     } else {
+      // Check if tutor needs to complete profile
+      const { data: { user: loggedUser } } = await supabase.auth.getUser();
+      if (loggedUser?.user_metadata?.role === "tutor") {
+        const { data: tp } = await supabase
+          .from("tutor_profiles")
+          .select("bio:profiles!inner(bio), hourly_rate")
+          .eq("user_id", loggedUser.id)
+          .single();
+        // Redirect if profile is incomplete
+        if (!tp?.hourly_rate || tp.hourly_rate === 0) {
+          toast({ title: "Welcome! Let's complete your profile." });
+          navigate("/tutor/setup");
+          setLoading(false);
+          return;
+        }
+      }
       toast({ title: "Welcome back!" });
       navigate("/");
     }

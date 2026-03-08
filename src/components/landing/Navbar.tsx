@@ -55,9 +55,16 @@ const Navbar = () => {
         </div>
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
-            <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
-              <LogOut className="h-4 w-4" /> Sign Out
-            </Button>
+            <>
+              {incompleteProfile && (
+                <Button variant="outline" size="sm" asChild className="gap-1.5 border-accent text-accent-foreground">
+                  <Link to="/tutor/setup"><UserCog className="h-4 w-4" /> Complete Profile</Link>
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+                <LogOut className="h-4 w-4" /> Sign Out
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild><Link to="/login">Login</Link></Button>
