@@ -24,11 +24,17 @@ const Navbar = () => {
         </a>
 
         <div className="hidden items-center gap-8 md:flex">
-          {navLinks.map((l) => (
-            <a key={l.href} href={l.href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-              {l.label}
-            </a>
-          ))}
+          {navLinks.map((l) =>
+            'isRoute' in l && l.isRoute ? (
+              <Link key={l.href} to={l.href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                {l.label}
+              </Link>
+            ) : (
+              <a key={l.href} href={l.href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                {l.label}
+              </a>
+            )
+          )}
         </div>
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
