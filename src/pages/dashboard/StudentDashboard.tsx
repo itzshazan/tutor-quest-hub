@@ -180,6 +180,14 @@ const StudentDashboard = () => {
     { label: "Reviews Given", value: stats.reviews, icon: Star, color: "text-accent-foreground" },
   ];
 
+  if (loading) {
+    return (
+      <DashboardLayout role="student">
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout role="student">
       <div className="space-y-6">

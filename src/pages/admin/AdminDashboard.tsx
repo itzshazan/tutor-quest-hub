@@ -123,9 +123,7 @@ export default function AdminDashboard() {
       <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
+        <AdminDashboardSkeleton />
       ) : (
         <>
           {/* Stats Cards */}

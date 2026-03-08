@@ -145,6 +145,14 @@ const TutorDashboard = () => {
     { label: "Avg Rating", value: stats.rating ? `${stats.rating}★` : "–", icon: Star, color: "text-accent-foreground" },
   ];
 
+  if (loading) {
+    return (
+      <DashboardLayout role="tutor">
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout role="tutor">
       <div className="space-y-6">

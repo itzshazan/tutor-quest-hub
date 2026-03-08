@@ -398,11 +398,7 @@ const Messages = () => {
               {/* Messages */}
               <ScrollArea className="flex-1 px-4 py-4">
                 {loadingMessages ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-10 w-2/3 rounded-xl" />
-                    ))}
-                  </div>
+                  <ChatMessagesSkeleton />
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <p className="text-sm text-muted-foreground">
