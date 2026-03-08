@@ -16,10 +16,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import {
   GraduationCap, CalendarIcon, Clock, Plus, Check, X as XIcon,
-  ArrowLeft, Loader2, BookOpen, MapPin, CreditCard, IndianRupee,
+  ArrowLeft, Loader2, BookOpen, MapPin, CreditCard, IndianRupee, LayoutGrid, List,
 } from "lucide-react";
 import { format, startOfDay, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
+import { SessionCalendar } from "@/components/SessionCalendar";
 
 const TIME_OPTIONS = [
   "08:00", "09:00", "10:00", "11:00", "12:00",
