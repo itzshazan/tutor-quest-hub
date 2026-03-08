@@ -6,9 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, FileText, Eye, Flag, ShieldCheck } from "lucide-react";
+import { CheckCircle, XCircle, FileText, Eye, Flag, ShieldCheck, CheckCheck, Download } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { exportToCSV } from "@/lib/exportUtils";
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
