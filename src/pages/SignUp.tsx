@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { GraduationCap, Eye, EyeOff, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { lovable } from "@/integrations/lovable";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
