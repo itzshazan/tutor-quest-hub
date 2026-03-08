@@ -43,7 +43,7 @@ export default function AdminUsers() {
     
     // Apply role filter
     if (roleFilter !== "all") {
-      query = query.eq("role", roleFilter);
+      query = query.eq("role", roleFilter as "student" | "tutor" | "admin");
     }
     
     // Apply pagination
