@@ -245,11 +245,44 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Messages */}
+          {/* Saved Tutors */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Recent Messages</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2"><Heart className="h-4 w-4 text-destructive" /> Saved Tutors</CardTitle>
             </CardHeader>
+            <CardContent className="space-y-3">
+              {loading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : savedTutors.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No saved tutors yet. <Link to="/find-tutors" className="text-primary hover:underline">Browse tutors</Link> and tap the heart icon to save.</p>
+              ) : (
+                savedTutors.map((t) => (
+                  <div key={t.tutor_id} className="flex items-center gap-3 rounded-lg border p-3">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={t.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {t.full_name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <Link to={`/tutor/${t.tutor_id}`} className="font-medium text-sm text-foreground hover:underline">{t.full_name}</Link>
+                      <p className="text-xs text-muted-foreground">{t.subject}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="shrink-0 px-2" onClick={() => toggleSave(t.tutor_id)}>
+                      <Heart className="h-4 w-4 fill-destructive text-destructive" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Messages */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Messages</CardTitle>
+          </CardHeader>
             <CardContent className="space-y-3">
               {loading ? (
                 <p className="text-sm text-muted-foreground">Loading...</p>

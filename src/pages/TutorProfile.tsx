@@ -157,6 +157,17 @@ const TutorProfile = () => {
                 >
                   <CalendarIcon className="h-4 w-4" /> Book Session
                 </Button>
+                {user && id && (
+                  <Button
+                    size="lg"
+                    variant="ghost"
+                    className="px-3"
+                    onClick={() => toggleSave(id)}
+                    title={savedIds.has(id) ? "Unsave tutor" : "Save tutor"}
+                  >
+                    <Heart className={`h-5 w-5 ${savedIds.has(id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+                  </Button>
+                )}
               </div>
             </div>
 

@@ -444,6 +444,17 @@ const FindTutors = () => {
                           <Button size="sm" variant="outline" className="flex-1" asChild>
                             <Link to={`/messages?tutor=${t.user_id}`}>Contact</Link>
                           </Button>
+                          {user && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="shrink-0 px-2"
+                              onClick={() => toggleSave(t.user_id)}
+                              title={savedIds.has(t.user_id) ? "Unsave tutor" : "Save tutor"}
+                            >
+                              <Heart className={`h-4 w-4 ${savedIds.has(t.user_id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
