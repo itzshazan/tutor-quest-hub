@@ -256,6 +256,8 @@ export type Database = {
           rating: number | null
           subject: string
           subjects: string[] | null
+          teaching_method: string
+          teaching_radius: number | null
           total_reviews: number | null
           updated_at: string
           user_id: string
@@ -272,6 +274,8 @@ export type Database = {
           rating?: number | null
           subject?: string
           subjects?: string[] | null
+          teaching_method?: string
+          teaching_radius?: number | null
           total_reviews?: number | null
           updated_at?: string
           user_id: string
@@ -288,6 +292,8 @@ export type Database = {
           rating?: number | null
           subject?: string
           subjects?: string[] | null
+          teaching_method?: string
+          teaching_radius?: number | null
           total_reviews?: number | null
           updated_at?: string
           user_id?: string
