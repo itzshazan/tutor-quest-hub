@@ -23,6 +23,8 @@ interface TutorResult {
   rating: number | null;
   total_reviews: number | null;
   grade_levels: string[] | null;
+  teaching_method: string | null;
+  teaching_radius: number | null;
   profiles: {
     full_name: string;
     avatar_url: string | null;
@@ -31,6 +33,7 @@ interface TutorResult {
     longitude: number | null;
   } | null;
   distance?: number;
+  available_days?: string[];
 }
 
 const ratingOptions = [
