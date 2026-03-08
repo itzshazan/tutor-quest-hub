@@ -27,12 +27,14 @@ const studentItems = [
   { title: "Sessions", url: "/sessions", icon: CalendarDays },
   { title: "Messages", url: "/messages", icon: MessageSquare },
   { title: "Find Tutors", url: "/find-tutors", icon: Search },
+  { title: "Payments", url: "/payments", icon: CreditCard },
 ];
 
 const tutorItems = [
   { title: "Dashboard", url: "/dashboard/tutor", icon: LayoutDashboard },
   { title: "Sessions", url: "/sessions", icon: CalendarDays },
   { title: "Messages", url: "/messages", icon: MessageSquare },
+  { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Edit Profile", url: "/tutor/setup", icon: UserCog },
 ];
 
