@@ -231,4 +231,91 @@ const TutorProfile = () => {
   );
 };
 
+const REPORT_REASONS = [
+  "Fake information",
+  "Misbehavior",
+  "Unprofessional conduct",
+  "Inappropriate content",
+  "Other",
+];
+
+const ReportTutorSection = ({ tutorId, userId }: { tutorId: string; userId: string }) => {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (!reason) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("tutor_reports").insert({
+      tutor_id: tutorId,
+      reporter_id: userId,
+      reason,
+      description: description.trim() || null,
+    } as any);
+
+    if (error) {
+      toast({ title: "Report failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Report submitted", description: "An admin will review your report." });
+      setOpen(false);
+      setReason("");
+      setDescription("");
+    }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="border-t pt-6">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-destructive">
+            <Flag className="h-4 w-4" /> Report this tutor
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Flag className="h-5 w-5 text-destructive" /> Report Tutor
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Reason *</Label>
+              <Select value={reason} onValueChange={setReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REPORT_REASONS.map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Additional Details (optional)</Label>
+              <Textarea
+                placeholder="Provide more context about the issue..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={500}
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleSubmit} disabled={!reason || submitting}>
+                {submitting ? "Submitting..." : "Submit Report"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
 export default TutorProfile;
