@@ -400,9 +400,12 @@ const FindTutors = () => {
           <>
             <p className="mb-4 text-sm text-muted-foreground">
               {tutors.length} tutor{tutors.length !== 1 ? "s" : ""} found
+              {tutors.length > ITEMS_PER_PAGE && ` · Page ${currentPage} of ${Math.ceil(tutors.length / ITEMS_PER_PAGE)}`}
             </p>
             <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" staggerDelay={0.08}>
-              {tutors.map((t) => {
+              {tutors
+                .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                .map((t) => {
                 const name = t.profiles?.full_name || "Unknown Tutor";
                 const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
@@ -488,6 +491,52 @@ const FindTutors = () => {
                 );
               })}
             </StaggerContainer>
+
+            {/* Pagination */}
+            {tutors.length > ITEMS_PER_PAGE && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: Math.min(5, Math.ceil(tutors.length / ITEMS_PER_PAGE)) }, (_, i) => {
+                  const totalPages = Math.ceil(tutors.length / ITEMS_PER_PAGE);
+                  let pageNum: number;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className="w-9"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= Math.ceil(tutors.length / ITEMS_PER_PAGE)}
+                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(tutors.length / ITEMS_PER_PAGE), p + 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>
