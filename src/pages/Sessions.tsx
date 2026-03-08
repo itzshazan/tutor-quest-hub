@@ -70,18 +70,20 @@ const Sessions = () => {
   const [bookNotes, setBookNotes] = useState("");
   const [booking, setBooking] = useState(false);
   const [tutorSubjects, setTutorSubjects] = useState<string[]>([]);
+  const [tutorAvailability, setTutorAvailability] = useState<{ day_of_week: string; start_time: string; end_time: string }[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");
   }, [authLoading, user, navigate]);
 
-  // Load tutor info if booking
+  // Load tutor info and availability if booking
   useEffect(() => {
     if (!tutorIdParam) return;
     const load = async () => {
-      const [{ data: profile }, { data: tp }] = await Promise.all([
+      const [{ data: profile }, { data: tp }, { data: availability }] = await Promise.all([
         supabase.from("profiles").select("full_name").eq("user_id", tutorIdParam).single(),
         supabase.from("tutor_profiles").select("subject, subjects").eq("user_id", tutorIdParam).single(),
+        supabase.from("tutor_availability").select("day_of_week, start_time, end_time").eq("tutor_id", tutorIdParam),
       ]);
       if (profile) setTutorName(profile.full_name);
       if (tp) {
@@ -89,9 +91,30 @@ const Sessions = () => {
         setTutorSubjects(subs);
         if (!bookSubject && subs.length > 0) setBookSubject(subs[0]);
       }
+      if (availability) setTutorAvailability(availability);
     };
     load();
   }, [tutorIdParam]);
+
+  // Get available time slots for the selected date based on tutor's availability
+  const getAvailableTimeSlots = () => {
+    if (!bookDate || tutorAvailability.length === 0) return TIME_OPTIONS;
+    
+    const dayName = format(bookDate, "EEEE"); // e.g., "Monday"
+    const dayAvailability = tutorAvailability.filter((a) => a.day_of_week.toLowerCase() === dayName.toLowerCase());
+    
+    if (dayAvailability.length === 0) return []; // Tutor not available on this day
+    
+    // Filter TIME_OPTIONS to only include slots within tutor's available windows
+    return TIME_OPTIONS.filter((time) => {
+      return dayAvailability.some((slot) => {
+        return time >= slot.start_time.slice(0, 5) && time < slot.end_time.slice(0, 5);
+      });
+    });
+  };
+
+  const availableStartTimes = getAvailableTimeSlots();
+  const availableEndTimes = availableStartTimes.filter((t) => t > bookStart);
 
   // Load sessions
   const loadSessions = async () => {
