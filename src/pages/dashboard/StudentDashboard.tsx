@@ -200,6 +200,35 @@ const StudentDashboard = () => {
     setLoading(false);
   };
 
+  const handlePay = async (sessionId: string) => {
+    setPayingSessionId(sessionId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-session-payment", {
+        body: { session_id: sessionId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message || "Could not initiate payment", variant: "destructive" });
+    }
+    setPayingSessionId(null);
+  };
+
+  const getStatusDisplay = (s: SessionRow) => {
+    if (s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed")) {
+      return { label: "Payment Required", color: "bg-primary/20 text-primary" };
+    }
+    if (s.status === "confirmed" && s.payment_status === "pending") {
+      return { label: "Payment Held", color: "bg-secondary/20 text-secondary" };
+    }
+    if (s.status === "confirmed" && s.payment_status === "completed") {
+      return { label: "Session Confirmed", color: "bg-secondary/20 text-secondary" };
+    }
+    return { label: STATUS_LABELS[s.status] || s.status, color: STATUS_COLORS[s.status] || "" };
+  };
+
   const statCards = [
     { label: "Total Sessions", value: stats.total, icon: BookOpen, color: "text-primary" },
     { label: "Upcoming", value: stats.upcoming, icon: Clock, color: "text-secondary" },
