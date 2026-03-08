@@ -71,6 +71,8 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 const FindTutors = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+  const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [tutors, setTutors] = useState<TutorResult[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
