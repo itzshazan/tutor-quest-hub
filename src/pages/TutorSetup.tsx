@@ -521,6 +521,27 @@ const TutorSetup = () => {
                 <p className="text-xs text-muted-foreground">Your browser location will also be captured for distance-based search.</p>
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Teaching Method</Label>
+                  <Select value={form.teachingMethod} onValueChange={(v) => update("teachingMethod", v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="offline">Offline (In-person)</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                      <SelectItem value="both">Both</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="radius">Teaching Radius (km)</Label>
+                  <Input id="radius" type="number" min={1} max={50} placeholder="10" value={form.teachingRadius || ""} onChange={(e) => update("teachingRadius", parseInt(e.target.value) || 0)} />
+                  <p className="text-xs text-muted-foreground">How far you're willing to travel (1–50 km)</p>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 <Label className="flex items-center gap-2">
                   <Clock className="h-4 w-4" /> Weekly Availability *
