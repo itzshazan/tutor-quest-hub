@@ -111,7 +111,7 @@ const Testimonials = () => {
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-16 grid gap-6 md:grid-cols-3" staggerDelay={0.12}>
+        <StaggerContainer className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.12}>
           {loading ? (
             [1, 2, 3].map((i) => (
               <div key={i} className="rounded-2xl border bg-card p-8 space-y-4">
