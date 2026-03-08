@@ -56,6 +56,9 @@ const Navbar = () => {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
+              <Button variant="ghost" size="sm" asChild className="gap-1.5">
+                <Link to="/messages"><MessageSquare className="h-4 w-4" /> Messages</Link>
+              </Button>
               {incompleteProfile && (
                 <Button variant="outline" size="sm" asChild className="gap-1.5 border-accent text-accent-foreground">
                   <Link to="/tutor/setup"><UserCog className="h-4 w-4" /> Complete Profile</Link>
