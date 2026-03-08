@@ -84,6 +84,9 @@ const Login = () => {
               Don't have an account?{" "}
               <Link to="/signup" className="font-medium text-primary hover:underline">Sign up</Link>
             </p>
+            <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
+              Forgot your password?
+            </Link>
           </CardFooter>
         </form>
       </Card>

@@ -137,11 +137,42 @@ const Sessions = () => {
     if (!user || !tutorIdParam || !bookDate || !bookStart || !bookEnd || !bookSubject) return;
     setBooking(true);
 
+    const sessionDateStr = format(bookDate, "yyyy-MM-dd");
+
+    // Check for time conflicts with existing sessions
+    const { data: existingSessions, error: conflictError } = await supabase
+      .from("sessions")
+      .select("id, start_time, end_time")
+      .eq("tutor_id", tutorIdParam)
+      .eq("session_date", sessionDateStr)
+      .in("status", ["pending", "confirmed"]);
+
+    if (conflictError) {
+      toast({ title: "Error checking availability", description: conflictError.message, variant: "destructive" });
+      setBooking(false);
+      return;
+    }
+
+    // Check for time overlap: conflict exists when existing.start < new.end AND existing.end > new.start
+    const hasConflict = existingSessions?.some((existing) => {
+      return existing.start_time < bookEnd && existing.end_time > bookStart;
+    });
+
+    if (hasConflict) {
+      toast({
+        title: "Time slot unavailable",
+        description: "The tutor already has a session booked during this time. Please choose a different time.",
+        variant: "destructive",
+      });
+      setBooking(false);
+      return;
+    }
+
     const { data: inserted, error } = await supabase.from("sessions").insert({
       student_id: user.id,
       tutor_id: tutorIdParam,
       subject: bookSubject,
-      session_date: format(bookDate, "yyyy-MM-dd"),
+      session_date: sessionDateStr,
       start_time: bookStart,
       end_time: bookEnd,
       notes: bookNotes.trim(),

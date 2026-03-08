@@ -6,9 +6,13 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
+import { ProtectedRoute } from "@/components/guards/ProtectedRoute";
+import { RoleGuard } from "@/components/guards/RoleGuard";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import TutorProfile from "./pages/TutorProfile";
 import FindTutors from "./pages/FindTutors";
 import TutorSetup from "./pages/TutorSetup";
@@ -40,22 +44,58 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div key={location.pathname} {...pageTransition}>
         <Routes location={location}>
+          {/* Public routes */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/find-tutors" element={<FindTutors />} />
-          <Route path="/tutor/setup" element={<TutorSetup />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/sessions" element={<Sessions />} />
-          <Route path="/payments" element={<PaymentHistory />} />
           <Route path="/tutor/:id" element={<TutorProfile />} />
-          <Route path="/dashboard/student" element={<StudentDashboard />} />
-          <Route path="/dashboard/tutor" element={<TutorDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/tutors" element={<AdminTutors />} />
-          <Route path="/admin/sessions" element={<AdminSessions />} />
-          <Route path="/admin/reviews" element={<AdminReviews />} />
+
+          {/* Protected routes (any authenticated user) */}
+          <Route path="/tutor/setup" element={
+            <ProtectedRoute><TutorSetup /></ProtectedRoute>
+          } />
+          <Route path="/messages" element={
+            <ProtectedRoute><Messages /></ProtectedRoute>
+          } />
+          <Route path="/sessions" element={
+            <ProtectedRoute><Sessions /></ProtectedRoute>
+          } />
+          <Route path="/payments" element={
+            <ProtectedRoute><PaymentHistory /></ProtectedRoute>
+          } />
+
+          {/* Role-specific routes */}
+          <Route path="/dashboard/student" element={
+            <RoleGuard allowedRole="student" redirectTo="/dashboard/tutor">
+              <StudentDashboard />
+            </RoleGuard>
+          } />
+          <Route path="/dashboard/tutor" element={
+            <RoleGuard allowedRole="tutor" redirectTo="/dashboard/student">
+              <TutorDashboard />
+            </RoleGuard>
+          } />
+
+          {/* Admin routes */}
+          <Route path="/admin" element={
+            <RoleGuard allowedRole="admin"><AdminDashboard /></RoleGuard>
+          } />
+          <Route path="/admin/users" element={
+            <RoleGuard allowedRole="admin"><AdminUsers /></RoleGuard>
+          } />
+          <Route path="/admin/tutors" element={
+            <RoleGuard allowedRole="admin"><AdminTutors /></RoleGuard>
+          } />
+          <Route path="/admin/sessions" element={
+            <RoleGuard allowedRole="admin"><AdminSessions /></RoleGuard>
+          } />
+          <Route path="/admin/reviews" element={
+            <RoleGuard allowedRole="admin"><AdminReviews /></RoleGuard>
+          } />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </motion.div>
