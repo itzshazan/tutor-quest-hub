@@ -149,13 +149,16 @@ const TutorSetup = () => {
     update("avatarPreview", URL.createObjectURL(file));
   };
 
+  const [docCategory, setDocCategory] = useState<"id_proof" | "education" | "experience">("id_proof");
+
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const valid = files.filter((f) => f.size <= 10 * 1024 * 1024);
     if (valid.length < files.length) {
       toast({ title: "Some files skipped", description: "Max 10 MB per file", variant: "destructive" });
     }
-    update("verificationDocs", [...form.verificationDocs, ...valid]);
+    const newDocs: VerificationDoc[] = valid.map((f) => ({ file: f, category: docCategory }));
+    update("verificationDocs", [...form.verificationDocs, ...newDocs]);
   };
 
   const removeDoc = (index: number) => {
