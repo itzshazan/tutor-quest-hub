@@ -25,6 +25,12 @@ serve(async (req) => {
     const user = data.user;
     if (!user) throw new Error("User not authenticated");
 
+    // Rate limit: 10 capture attempts per minute per user
+    const rateCheck = checkRateLimit(`capture:${user.id}`, { limit: 10, windowMs: 60000 });
+    if (rateCheck.limited) {
+      return rateLimitResponse(rateCheck.retryAfter!, corsHeaders);
+    }
+
     const { session_id } = await req.json();
     if (!session_id) throw new Error("session_id is required");
 

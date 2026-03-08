@@ -27,6 +27,12 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
+    // Rate limit: 5 payment attempts per minute per user
+    const rateCheck = checkRateLimit(`payment:${user.id}`, { limit: 5, windowMs: 60000 });
+    if (rateCheck.limited) {
+      return rateLimitResponse(rateCheck.retryAfter!, corsHeaders);
+    }
+
     const { session_id } = await req.json();
     if (!session_id) throw new Error("session_id is required");
 

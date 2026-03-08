@@ -25,6 +25,12 @@ serve(async (req) => {
     const user = data.user;
     if (!user) throw new Error("User not authenticated");
 
+    // Rate limit: 3 refund attempts per minute per user
+    const rateCheck = checkRateLimit(`refund:${user.id}`, { limit: 3, windowMs: 60000 });
+    if (rateCheck.limited) {
+      return rateLimitResponse(rateCheck.retryAfter!, corsHeaders);
+    }
+
     const { payment_id, reason } = await req.json();
     if (!payment_id) throw new Error("payment_id is required");
 

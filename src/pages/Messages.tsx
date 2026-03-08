@@ -253,7 +253,7 @@ const Messages = () => {
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Skeleton className="h-12 w-48" />
+        <div className="h-12 w-48 animate-pulse rounded-md bg-muted" />
       </div>
     );
   }
