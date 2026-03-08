@@ -186,7 +186,7 @@ const FindTutors = () => {
     };
 
     fetchTutors();
-  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter, gradeFilter, dayFilter, userLocation, sortByDistance]);
+  }, [subjectFilter, debouncedLocation, ratingFilter, budgetFilter, gradeFilter, dayFilter, userLocation, sortByDistance]);
 
   const handleSearch = () => {
     const params: Record<string, string> = {};
