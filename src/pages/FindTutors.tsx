@@ -109,8 +109,9 @@ const FindTutors = () => {
 
       let query = supabase
         .from("tutor_profiles")
-        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
-        .order("rating", { ascending: false, nullsFirst: false });
+        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius, trust_score, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
+        .eq("is_verified", true)
+        .order("trust_score", { ascending: false, nullsFirst: false });
 
       // If day filter is set, get tutor IDs that are available on that day
       let availableTutorIds: string[] | null = null;

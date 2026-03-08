@@ -30,6 +30,11 @@ const GRADE_LEVELS = [
   "Undergraduate", "Postgraduate", "Competitive Exams",
 ];
 
+interface VerificationDoc {
+  file: File;
+  category: "id_proof" | "education" | "experience";
+}
+
 interface FormData {
   avatarFile: File | null;
   avatarPreview: string;
@@ -44,7 +49,7 @@ interface FormData {
   teachingMethod: string;
   teachingRadius: number;
   availability: { day: string; start: string; end: string }[];
-  verificationDocs: File[];
+  verificationDocs: VerificationDoc[];
   existingDocs: { id: string; document_type: string; status: string }[];
 }
 
