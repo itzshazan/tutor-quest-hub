@@ -687,7 +687,7 @@ const TutorSetup = () => {
 
         {/* Navigation buttons */}
         <div className="mt-6 flex justify-between">
-          <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 1}>
+          <Button variant="outline" onClick={() => step === 1 ? navigate(-1) : setStep((s) => s - 1)}>
             <ArrowLeft className="mr-1 h-4 w-4" /> Back
           </Button>
           {step < 4 ? (
