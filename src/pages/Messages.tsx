@@ -301,6 +301,13 @@ const Messages = () => {
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container flex h-14 items-center gap-3">
+          <button
+            onClick={() => window.history.length > 1 ? window.history.back() : window.location.assign("/")}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-primary">
             <GraduationCap className="h-6 w-6" /> Tutor Quest
           </Link>
