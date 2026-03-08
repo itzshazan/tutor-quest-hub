@@ -122,6 +122,19 @@ serve(async (req) => {
       payment_status: "pending",
     });
 
+    // Send paid notification
+    try {
+      const notifUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-session-notification`;
+      await fetch(notifUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+        },
+        body: JSON.stringify({ session_id, event_type: "paid" }),
+      });
+    } catch (e) { console.error("Notification failed:", e); }
+
     return new Response(JSON.stringify({ url: checkoutSession.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

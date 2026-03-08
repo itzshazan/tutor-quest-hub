@@ -75,6 +75,22 @@ serve(async (req) => {
       .update({ status: "completed" })
       .eq("id", session_id);
 
+    // Send notification
+    try {
+      const notifUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-session-notification`;
+      await fetch(notifUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          ...Object.fromEntries(
+            Object.entries(corsHeaders).filter(([k]) => !k.startsWith("Access"))
+          ),
+        },
+        body: JSON.stringify({ session_id, event_type: "completed" }),
+      });
+    } catch (e) { console.error("Notification failed:", e); }
+
     return new Response(JSON.stringify({ success: true, message: "Payment captured and session completed" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
