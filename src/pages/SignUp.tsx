@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { phoneSchema } from "@/lib/validations";
+import { SEO } from "@/components/SEO";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
