@@ -217,11 +217,8 @@ const StudentDashboard = () => {
   };
 
   const getStatusDisplay = (s: SessionRow) => {
-    if (s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed")) {
+    if (s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed" || s.payment_status === "pending")) {
       return { label: "Payment Required", color: "bg-primary/20 text-primary" };
-    }
-    if (s.status === "confirmed" && s.payment_status === "pending") {
-      return { label: "Payment Held", color: "bg-secondary/20 text-secondary" };
     }
     if (s.status === "confirmed" && s.payment_status === "completed") {
       return { label: "Session Confirmed", color: "bg-secondary/20 text-secondary" };
@@ -299,7 +296,7 @@ const StudentDashboard = () => {
               ) : (
                 sessions.map((s) => {
                   const statusDisplay = getStatusDisplay(s);
-                  const needsPayment = s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed");
+                  const needsPayment = s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed" || s.payment_status === "pending");
                   return (
                     <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
                       <div className="space-y-1">
