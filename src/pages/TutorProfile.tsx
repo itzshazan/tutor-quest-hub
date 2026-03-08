@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Star, MapPin, Briefcase, GraduationCap, BookOpen, ArrowLeft, MessageSquare, CalendarIcon, Flag, ShieldCheck, Heart } from "lucide-react";
+import { VerificationBadges } from "@/components/VerificationBadges";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";

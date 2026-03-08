@@ -227,7 +227,10 @@ const TutorSetup = () => {
 
         const categoryLabels: Record<string, string> = {
           id_proof: "ID Proof",
-          education: "Education Certificate",
+          bachelor_degree: "Bachelor's Degree",
+          masters_degree: "Master's Degree",
+          phd_certificate: "PhD Certificate",
+          teaching_certificate: "Teaching Certificate",
           experience: "Experience Proof",
         };
 
