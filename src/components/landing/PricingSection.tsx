@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
+import { Tilt3D } from "./Tilt3D";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 const plans = [
   {
@@ -59,7 +59,7 @@ const PricingSection = () => {
   return (
     <section id="pricing" className="py-24 md:py-32">
       <div className="container">
-        <ScrollReveal>
+        <ScrollReveal variant="flipUp">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">Pricing</p>
             <h2 className="mt-3 text-display text-foreground">Simple, transparent pricing</h2>
@@ -71,11 +71,11 @@ const PricingSection = () => {
 
         <StaggerContainer className="mt-16 grid gap-6 md:grid-cols-3" staggerDelay={0.12}>
           {plans.map((plan) => (
-            <StaggerItem key={plan.name}>
-              <motion.div
-                whileHover={{ y: -4 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className={`relative flex h-full flex-col rounded-2xl border p-8 shadow-card transition-shadow hover:shadow-card-hover ${
+            <StaggerItem key={plan.name} variant="flipUp">
+              <Tilt3D
+                intensity={plan.highlighted ? 10 : 7}
+                scale={plan.highlighted ? 1.03 : 1.02}
+                className={`group relative flex h-full flex-col rounded-2xl border p-8 shadow-card transition-shadow hover:shadow-card-hover ${
                   plan.highlighted ? "border-accent bg-primary text-primary-foreground" : "bg-card"
                 }`}
               >
@@ -87,7 +87,7 @@ const PricingSection = () => {
                   </div>
                 )}
 
-                <div>
+                <div style={{ transform: "translateZ(20px)" }}>
                   <h3 className="text-lg font-semibold">{plan.name}</h3>
                   <div className="mt-4 flex items-baseline gap-1">
                     <span className="text-display text-inherit">{plan.price}</span>
@@ -97,7 +97,7 @@ const PricingSection = () => {
                   </p>
                 </div>
 
-                <ul className="mt-8 flex-1 space-y-4">
+                <ul className="mt-8 flex-1 space-y-4" style={{ transform: "translateZ(15px)" }}>
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${plan.highlighted ? "text-accent" : "text-accent"}`} />
@@ -108,7 +108,7 @@ const PricingSection = () => {
                   ))}
                 </ul>
 
-                <div className="mt-8">
+                <div className="mt-8" style={{ transform: "translateZ(25px)" }}>
                   <Button
                     size="lg"
                     className={`w-full rounded-full ${
@@ -127,7 +127,7 @@ const PricingSection = () => {
                     )}
                   </Button>
                 </div>
-              </motion.div>
+              </Tilt3D>
             </StaggerItem>
           ))}
         </StaggerContainer>

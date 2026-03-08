@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
+import { Tilt3D } from "./Tilt3D";
 
 const testimonials = [
   {
@@ -30,7 +31,7 @@ const Testimonials = () => {
   return (
     <section className="py-24 md:py-32">
       <div className="container">
-        <ScrollReveal>
+        <ScrollReveal variant="zoomRotate">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">Testimonials</p>
             <h2 className="mt-3 text-display text-foreground">Loved by students and tutors</h2>
@@ -42,22 +43,22 @@ const Testimonials = () => {
 
         <StaggerContainer className="mt-16 grid gap-6 md:grid-cols-3" staggerDelay={0.12}>
           {testimonials.map((t) => (
-            <StaggerItem key={t.name}>
-              <div className="flex h-full flex-col rounded-2xl border bg-card p-8 shadow-card">
+            <StaggerItem key={t.name} variant="flipUp">
+              <Tilt3D intensity={8} className="group flex h-full flex-col rounded-2xl border bg-card p-8 shadow-card transition-shadow hover:shadow-card-hover">
                 {/* Stars */}
-                <div className="flex gap-0.5">
+                <div className="flex gap-0.5" style={{ transform: "translateZ(25px)" }}>
                   {Array.from({ length: t.rating }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-accent text-accent" />
                   ))}
                 </div>
 
                 {/* Quote */}
-                <p className="mt-4 flex-1 text-body text-foreground leading-relaxed">
+                <p className="mt-4 flex-1 text-body text-foreground leading-relaxed" style={{ transform: "translateZ(15px)" }}>
                   "{t.quote}"
                 </p>
 
                 {/* Author */}
-                <div className="mt-6 flex items-center gap-3 border-t pt-6">
+                <div className="mt-6 flex items-center gap-3 border-t pt-6" style={{ transform: "translateZ(20px)" }}>
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
                       {t.initials}
@@ -68,7 +69,7 @@ const Testimonials = () => {
                     <p className="text-xs text-muted-foreground">{t.role}</p>
                   </div>
                 </div>
-              </div>
+              </Tilt3D>
             </StaggerItem>
           ))}
         </StaggerContainer>
