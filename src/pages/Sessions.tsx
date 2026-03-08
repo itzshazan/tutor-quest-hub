@@ -177,6 +177,13 @@ const Sessions = () => {
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: `Session ${status}` });
+      // Send notification
+      const eventMap: Record<string, string> = { confirmed: "confirmed", declined: "declined", cancelled: "cancelled" };
+      if (eventMap[status]) {
+        supabase.functions.invoke("send-session-notification", {
+          body: { session_id: sessionId, event_type: eventMap[status] },
+        }).catch(console.error);
+      }
     }
   };
 
