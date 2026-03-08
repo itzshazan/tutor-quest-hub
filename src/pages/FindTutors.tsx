@@ -79,6 +79,7 @@ const FindTutors = () => {
   const [ratingFilter, setRatingFilter] = useState(searchParams.get("rating") || "0");
   const [budgetFilter, setBudgetFilter] = useState(searchParams.get("budget") || "0");
   const [gradeFilter, setGradeFilter] = useState(searchParams.get("grade") || "");
+  const [dayFilter, setDayFilter] = useState(searchParams.get("day") || "");
 
   useEffect(() => {
     const fetchSubjects = async () => {
