@@ -24,6 +24,8 @@ interface TutorData {
   is_verified: boolean;
   rating: number;
   total_reviews: number;
+  teaching_method: string;
+  teaching_radius: number;
 }
 
 const TutorProfile = () => {
