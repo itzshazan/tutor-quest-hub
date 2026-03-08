@@ -201,11 +201,16 @@ const Sessions = () => {
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
-          {userRole === "student" && !showBooking && (
-            <Button size="sm" onClick={() => navigate("/find-tutors")} className="gap-1.5">
-              <Plus className="h-4 w-4" /> Book a Session
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/payments")} className="gap-1.5">
+              <IndianRupee className="h-4 w-4" /> Payment History
             </Button>
-          )}
+            {userRole === "student" && !showBooking && (
+              <Button size="sm" onClick={() => navigate("/find-tutors")} className="gap-1.5">
+                <Plus className="h-4 w-4" /> Book a Session
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Booking Form */}
