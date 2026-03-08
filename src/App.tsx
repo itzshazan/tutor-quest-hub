@@ -66,6 +66,8 @@ function AnimatedRoutes() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/find-tutors" element={<FindTutors />} />
             <Route path="/tutor/:id" element={<TutorProfile />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
 
             {/* Protected routes (any authenticated user) */}
             <Route path="/tutor/setup" element={
