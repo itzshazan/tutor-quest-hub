@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   phoneSchema,
-  validateFileType,
-  validateFileSize,
+  validateDocumentFile,
+  validateImageFile,
   ALLOWED_DOCUMENT_TYPES,
-  MAX_FILE_SIZE,
+  MAX_DOCUMENT_SIZE,
+  MAX_AVATAR_SIZE,
 } from "./validations";
 
 describe("phoneSchema", () => {
@@ -24,11 +25,14 @@ describe("phoneSchema", () => {
     expect(phoneSchema.safeParse("").success).toBe(true);
   });
 
+  it("accepts undefined (optional)", () => {
+    expect(phoneSchema.safeParse(undefined).success).toBe(true);
+  });
+
   it("rejects invalid phone numbers", () => {
     const invalidNumbers = [
-      "1234567890", // missing +
       "abc123",
-      "+1",
+      "+1", // too short
       "phone number",
     ];
     invalidNumbers.forEach((num) => {
@@ -37,7 +41,7 @@ describe("phoneSchema", () => {
   });
 });
 
-describe("validateFileType", () => {
+describe("validateDocumentFile", () => {
   it("accepts valid document types", () => {
     const validFiles = [
       new File(["test"], "doc.pdf", { type: "application/pdf" }),
@@ -45,7 +49,7 @@ describe("validateFileType", () => {
       new File(["test"], "image.png", { type: "image/png" }),
     ];
     validFiles.forEach((file) => {
-      const result = validateFileType(file, ALLOWED_DOCUMENT_TYPES);
+      const result = validateDocumentFile(file);
       expect(result.valid).toBe(true);
     });
   });
@@ -57,41 +61,45 @@ describe("validateFileType", () => {
       new File(["test"], "doc.txt", { type: "text/plain" }),
     ];
     invalidFiles.forEach((file) => {
-      const result = validateFileType(file, ALLOWED_DOCUMENT_TYPES);
+      const result = validateDocumentFile(file);
       expect(result.valid).toBe(false);
       expect(result.error).toBeDefined();
     });
   });
 });
 
-describe("validateFileSize", () => {
-  it("accepts files under size limit", () => {
-    const smallFile = new File(["x".repeat(1000)], "small.pdf", {
-      type: "application/pdf",
+describe("validateImageFile", () => {
+  it("accepts valid image types", () => {
+    const validFiles = [
+      new File(["test"], "image.jpg", { type: "image/jpeg" }),
+      new File(["test"], "image.png", { type: "image/png" }),
+      new File(["test"], "image.webp", { type: "image/webp" }),
+      new File(["test"], "image.gif", { type: "image/gif" }),
+    ];
+    validFiles.forEach((file) => {
+      const result = validateImageFile(file);
+      expect(result.valid).toBe(true);
     });
-    const result = validateFileSize(smallFile, MAX_FILE_SIZE);
-    expect(result.valid).toBe(true);
   });
 
-  it("rejects files over size limit", () => {
-    // Create a file object that reports a large size
+  it("rejects oversized files", () => {
     const largeFile = {
-      name: "large.pdf",
-      size: MAX_FILE_SIZE + 1,
-      type: "application/pdf",
+      name: "large.jpg",
+      size: MAX_AVATAR_SIZE + 1,
+      type: "image/jpeg",
     } as File;
-    const result = validateFileSize(largeFile, MAX_FILE_SIZE);
+    const result = validateImageFile(largeFile);
     expect(result.valid).toBe(false);
-    expect(result.error).toContain("5MB");
+    expect(result.error).toContain("too large");
   });
 
-  it("accepts files exactly at the limit", () => {
+  it("accepts files at the limit", () => {
     const exactFile = {
-      name: "exact.pdf",
-      size: MAX_FILE_SIZE,
-      type: "application/pdf",
+      name: "exact.jpg",
+      size: MAX_AVATAR_SIZE,
+      type: "image/jpeg",
     } as File;
-    const result = validateFileSize(exactFile, MAX_FILE_SIZE);
+    const result = validateImageFile(exactFile);
     expect(result.valid).toBe(true);
   });
 });

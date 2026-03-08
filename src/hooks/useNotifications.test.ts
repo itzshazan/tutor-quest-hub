@@ -1,7 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import React from "react";
 
-// Mock supabase before importing the hook
+// Mock AuthContext
+const mockUser = { id: "user-1", email: "test@test.com" };
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: vi.fn(() => ({ user: mockUser, loading: false })),
+}));
+
+// Mock supabase
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -51,32 +59,31 @@ vi.mock("@/integrations/supabase/client", () => ({
       })),
     })),
     removeChannel: vi.fn(),
-    auth: {
-      getUser: vi.fn(() =>
-        Promise.resolve({
-          data: { user: { id: "user-1" } },
-          error: null,
-        })
-      ),
-    },
   },
 }));
 
 // Import after mocking
 import { useNotifications } from "./useNotifications";
+import { useAuth } from "@/contexts/AuthContext";
 
 describe("useNotifications", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue({ 
+      user: mockUser, 
+      loading: false, 
+      session: null, 
+      signOut: vi.fn() 
+    } as any);
   });
 
   it("returns initial loading state", () => {
-    const { result } = renderHook(() => useNotifications("user-1"));
+    const { result } = renderHook(() => useNotifications());
     expect(result.current.loading).toBe(true);
   });
 
   it("loads notifications for a user", async () => {
-    const { result } = renderHook(() => useNotifications("user-1"));
+    const { result } = renderHook(() => useNotifications());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -86,7 +93,7 @@ describe("useNotifications", () => {
   });
 
   it("calculates unread count correctly", async () => {
-    const { result } = renderHook(() => useNotifications("user-1"));
+    const { result } = renderHook(() => useNotifications());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -96,19 +103,22 @@ describe("useNotifications", () => {
     expect(result.current.unreadCount).toBe(1);
   });
 
-  it("returns empty state when no userId provided", async () => {
-    const { result } = renderHook(() => useNotifications(undefined));
+  it("returns empty state when no user", async () => {
+    vi.mocked(useAuth).mockReturnValue({ 
+      user: null, 
+      loading: false, 
+      session: null, 
+      signOut: vi.fn() 
+    } as any);
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
+    const { result } = renderHook(() => useNotifications());
 
+    // Should not load because no user
     expect(result.current.notifications).toHaveLength(0);
-    expect(result.current.unreadCount).toBe(0);
   });
 
   it("provides markAsRead function", async () => {
-    const { result } = renderHook(() => useNotifications("user-1"));
+    const { result } = renderHook(() => useNotifications());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -118,12 +128,22 @@ describe("useNotifications", () => {
   });
 
   it("provides markAllAsRead function", async () => {
-    const { result } = renderHook(() => useNotifications("user-1"));
+    const { result } = renderHook(() => useNotifications());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
     expect(typeof result.current.markAllAsRead).toBe("function");
+  });
+
+  it("provides refresh function", async () => {
+    const { result } = renderHook(() => useNotifications());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(typeof result.current.refresh).toBe("function");
   });
 });

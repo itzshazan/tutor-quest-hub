@@ -19,7 +19,7 @@ describe("PasswordStrengthIndicator", () => {
   });
 
   it("shows good strength for longer mixed passwords", () => {
-    render(<PasswordStrengthIndicator password="Abcd1234!" />);
+    render(<PasswordStrengthIndicator password="Abcd1234" />);
     expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
@@ -28,19 +28,22 @@ describe("PasswordStrengthIndicator", () => {
     expect(screen.getByText("Strong")).toBeInTheDocument();
   });
 
-  it("displays requirement checklist", () => {
-    render(<PasswordStrengthIndicator password="Test123!" />);
-    expect(screen.getByText(/8\+ characters/i)).toBeInTheDocument();
-    expect(screen.getByText(/uppercase/i)).toBeInTheDocument();
-    expect(screen.getByText(/lowercase/i)).toBeInTheDocument();
-    expect(screen.getByText(/number/i)).toBeInTheDocument();
-    expect(screen.getByText(/special character/i)).toBeInTheDocument();
+  it("displays feedback for weak passwords", () => {
+    render(<PasswordStrengthIndicator password="abc" />);
+    // Should show improvement tips
+    expect(screen.getByText(/Use at least 8 characters/i)).toBeInTheDocument();
   });
 
-  it("shows checkmark for met requirements", () => {
-    render(<PasswordStrengthIndicator password="Password1!" />);
-    // Password1! meets: length, uppercase, lowercase, number, special
-    const checks = screen.getAllByTestId("requirement-met");
-    expect(checks.length).toBeGreaterThan(0);
+  it("hides feedback for strong passwords", () => {
+    render(<PasswordStrengthIndicator password="MyStr0ng!Pass#2024" />);
+    // Should not show tips for strong passwords
+    expect(screen.queryByText(/Use at least/i)).not.toBeInTheDocument();
+  });
+
+  it("renders strength bar segments", () => {
+    const { container } = render(<PasswordStrengthIndicator password="Test123!" />);
+    // Should have 4 bar segments
+    const bars = container.querySelectorAll(".rounded-full");
+    expect(bars.length).toBe(4);
   });
 });
