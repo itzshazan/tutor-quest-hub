@@ -46,6 +46,7 @@ interface Session {
   notes: string;
   created_at: string;
   other_user?: { full_name: string; avatar_url: string | null };
+  payment?: { id: string; payment_status: string; amount: number; tutor_earnings: number; platform_commission: number } | null;
 }
 
 const Sessions = () => {
