@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Briefcase, GraduationCap, BookOpen, ArrowLeft, MessageSquare } from "lucide-react";
+import { Star, MapPin, Briefcase, GraduationCap, BookOpen, ArrowLeft, MessageSquare, CalendarIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface TutorData {
