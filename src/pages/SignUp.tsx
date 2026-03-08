@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<"student" | "tutor">("student");
@@ -62,14 +63,18 @@ const SignUp = () => {
     if (error) {
       toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
     } else {
-      // Save preferred subjects and geolocation for students
-      if (role === "student" && signUpData.user) {
-        // We'll update after profile is created by trigger
+      // Save phone, preferred subjects and geolocation
+      if (signUpData.user) {
         setTimeout(async () => {
-          if (preferredSubjects.length > 0) {
+          const updates: Record<string, any> = {};
+          if (phone.trim()) updates.phone = phone.trim();
+          if (role === "student" && preferredSubjects.length > 0) {
+            updates.preferred_subjects = preferredSubjects;
+          }
+          if (Object.keys(updates).length > 0) {
             await supabase
               .from("profiles")
-              .update({ preferred_subjects: preferredSubjects } as any)
+              .update(updates as any)
               .eq("user_id", signUpData.user!.id);
           }
           // Capture geolocation
@@ -130,6 +135,10 @@ const SignUp = () => {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" type="tel" placeholder="+91 98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

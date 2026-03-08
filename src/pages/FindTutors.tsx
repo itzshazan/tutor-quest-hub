@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation } from "lucide-react";
+import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
 
@@ -23,6 +23,8 @@ interface TutorResult {
   rating: number | null;
   total_reviews: number | null;
   grade_levels: string[] | null;
+  teaching_method: string | null;
+  teaching_radius: number | null;
   profiles: {
     full_name: string;
     avatar_url: string | null;
@@ -31,6 +33,7 @@ interface TutorResult {
     longitude: number | null;
   } | null;
   distance?: number;
+  available_days?: string[];
 }
 
 const ratingOptions = [
@@ -50,6 +53,8 @@ const GRADE_LEVELS = [
   "Grade 1-5", "Grade 6-8", "Grade 9-10", "Grade 11-12",
   "Undergraduate", "Postgraduate", "Competitive Exams",
 ];
+
+const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -76,6 +81,7 @@ const FindTutors = () => {
   const [ratingFilter, setRatingFilter] = useState(searchParams.get("rating") || "0");
   const [budgetFilter, setBudgetFilter] = useState(searchParams.get("budget") || "0");
   const [gradeFilter, setGradeFilter] = useState(searchParams.get("grade") || "");
+  const [dayFilter, setDayFilter] = useState(searchParams.get("day") || "");
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -103,8 +109,18 @@ const FindTutors = () => {
 
       let query = supabase
         .from("tutor_profiles")
-        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
+        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
         .order("rating", { ascending: false, nullsFirst: false });
+
+      // If day filter is set, get tutor IDs that are available on that day
+      let availableTutorIds: string[] | null = null;
+      if (dayFilter) {
+        const { data: availData } = await supabase
+          .from("tutor_availability")
+          .select("tutor_id")
+          .eq("day_of_week", dayFilter);
+        availableTutorIds = availData ? [...new Set(availData.map((a) => a.tutor_id))] : [];
+      }
 
       if (subjectFilter) {
         query = query.or(`subject.ilike.%${subjectFilter}%,subjects.cs.{${subjectFilter}}`);
@@ -126,6 +142,11 @@ const FindTutors = () => {
 
       if (!error && data) {
         let results = data as unknown as TutorResult[];
+
+        // Filter by availability day
+        if (availableTutorIds !== null) {
+          results = results.filter((t) => availableTutorIds!.includes(t.user_id));
+        }
 
         // Calculate distances if user location available
         if (userLocation && sortByDistance) {
@@ -151,7 +172,7 @@ const FindTutors = () => {
     };
 
     fetchTutors();
-  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter, gradeFilter, userLocation, sortByDistance]);
+  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter, gradeFilter, dayFilter, userLocation, sortByDistance]);
 
   const handleSearch = () => {
     const params: Record<string, string> = {};
@@ -160,6 +181,7 @@ const FindTutors = () => {
     if (ratingFilter !== "0") params.rating = ratingFilter;
     if (budgetFilter !== "0") params.budget = budgetFilter;
     if (gradeFilter) params.grade = gradeFilter;
+    if (dayFilter) params.day = dayFilter;
     setSearchParams(params);
   };
 
@@ -169,11 +191,12 @@ const FindTutors = () => {
     setRatingFilter("0");
     setBudgetFilter("0");
     setGradeFilter("");
+    setDayFilter("");
     setSortByDistance(false);
     setSearchParams({});
   };
 
-  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0" || gradeFilter || sortByDistance;
+  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0" || gradeFilter || dayFilter || sortByDistance;
 
   return (
     <div className="min-h-screen bg-background">
@@ -242,7 +265,7 @@ const FindTutors = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+             </div>
 
             <div className="hidden flex-1 min-w-[130px] space-y-1 sm:block">
               <label className="text-xs font-medium text-muted-foreground">Rating</label>
@@ -251,6 +274,18 @@ const FindTutors = () => {
                 <SelectContent>
                   {ratingOptions.map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="hidden flex-1 min-w-[130px] space-y-1 sm:block">
+              <label className="text-xs font-medium text-muted-foreground">Availability</label>
+              <Select value={dayFilter} onValueChange={setDayFilter}>
+                <SelectTrigger><SelectValue placeholder="Any Day" /></SelectTrigger>
+                <SelectContent>
+                  {DAYS_OF_WEEK.map((d) => (
+                    <SelectItem key={d} value={d}>{d}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -292,6 +327,17 @@ const FindTutors = () => {
                 <SelectContent>
                   {ratingOptions.map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Availability</label>
+              <Select value={dayFilter} onValueChange={setDayFilter}>
+                <SelectTrigger><SelectValue placeholder="Any Day" /></SelectTrigger>
+                <SelectContent>
+                  {DAYS_OF_WEEK.map((d) => (
+                    <SelectItem key={d} value={d}>{d}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -390,7 +436,9 @@ const FindTutors = () => {
                           <Button size="sm" className="flex-1" asChild>
                             <Link to={`/tutor/${t.user_id}`}>View Profile</Link>
                           </Button>
-                          <Button size="sm" variant="outline" className="flex-1">Contact</Button>
+                          <Button size="sm" variant="outline" className="flex-1" asChild>
+                            <Link to={`/messages?tutor=${t.user_id}`}>Contact</Link>
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>

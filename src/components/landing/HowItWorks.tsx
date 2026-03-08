@@ -1,9 +1,10 @@
-import { Search, Users, MessageCircle, CalendarCheck } from "lucide-react";
+import { Search, Users, MessageCircle, CalendarCheck, MapPin } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 const steps = [
-  { icon: Search, title: "Search Tutors", desc: "Enter your subject and location to find nearby tutors." },
-  { icon: Users, title: "Compare Tutors", desc: "View profiles, ratings, experience, and reviews." },
+  { icon: Search, title: "Search Tutors", desc: "Enter your subject, location, and grade level to find nearby tutors." },
+  { icon: MapPin, title: "Find Nearby", desc: "Discover qualified tutors in your local area using location-based search." },
+  { icon: Users, title: "Compare Tutors", desc: "View profiles, ratings, experience, and reviews side by side." },
   { icon: MessageCircle, title: "Contact Tutor", desc: "Message tutors directly through the platform." },
   { icon: CalendarCheck, title: "Schedule Session", desc: "Arrange convenient offline tutoring sessions." },
 ];
@@ -15,11 +16,11 @@ const HowItWorks = () => {
         <ScrollReveal>
           <div className="text-center">
             <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">How Tutor Quest Works</h2>
-            <p className="mt-3 text-muted-foreground">Get started in four simple steps</p>
+            <p className="mt-3 text-muted-foreground">Get started in five simple steps</p>
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.15}>
+        <StaggerContainer className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" staggerDelay={0.15}>
           {steps.map((s, i) => (
             <StaggerItem key={s.title} variant="scaleIn">
               <div className="relative text-center">

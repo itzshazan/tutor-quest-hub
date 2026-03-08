@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,8 @@ interface FormData {
   hourlyRate: number;
   location: string;
   gradeLevels: string[];
+  teachingMethod: string;
+  teachingRadius: number;
   availability: { day: string; start: string; end: string }[];
   verificationDocs: File[];
   existingDocs: { id: string; document_type: string; status: string }[];
@@ -56,6 +59,8 @@ const initialForm: FormData = {
   hourlyRate: 0,
   location: "",
   gradeLevels: [],
+  teachingMethod: "offline",
+  teachingRadius: 10,
   availability: [],
   verificationDocs: [],
   existingDocs: [],
@@ -93,6 +98,8 @@ const TutorSetup = () => {
           hourlyRate: tutor?.hourly_rate || 0,
           location: tutor?.location || "",
           gradeLevels: (tutor as any)?.grade_levels || [],
+          teachingMethod: (tutor as any)?.teaching_method || "offline",
+          teachingRadius: (tutor as any)?.teaching_radius || 10,
         }));
       }
 
@@ -232,6 +239,8 @@ const TutorSetup = () => {
           hourly_rate: form.hourlyRate,
           location: form.location,
           grade_levels: form.gradeLevels,
+          teaching_method: form.teachingMethod,
+          teaching_radius: form.teachingRadius,
         } as any)
         .eq("user_id", user.id);
       if (tutorErr) throw tutorErr;
@@ -513,6 +522,27 @@ const TutorSetup = () => {
                 <p className="text-xs text-muted-foreground">Your browser location will also be captured for distance-based search.</p>
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Teaching Method</Label>
+                  <Select value={form.teachingMethod} onValueChange={(v) => update("teachingMethod", v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="offline">Offline (In-person)</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                      <SelectItem value="both">Both</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="radius">Teaching Radius (km)</Label>
+                  <Input id="radius" type="number" min={1} max={50} placeholder="10" value={form.teachingRadius || ""} onChange={(e) => update("teachingRadius", parseInt(e.target.value) || 0)} />
+                  <p className="text-xs text-muted-foreground">How far you're willing to travel (1–50 km)</p>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 <Label className="flex items-center gap-2">
                   <Clock className="h-4 w-4" /> Weekly Availability *
@@ -591,8 +621,9 @@ const TutorSetup = () => {
 
               <SummarySection title="Location & Availability" onEdit={() => setStep(3)}>
                 <p className="text-sm flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" /> {form.location}
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" /> {form.location} · {form.teachingRadius} km radius
                 </p>
+                <p className="text-xs text-muted-foreground mt-1 capitalize">Teaching method: {form.teachingMethod === "both" ? "Online & Offline" : form.teachingMethod}</p>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {form.availability.map((a, i) => (
                     <Badge key={i} variant="outline" className="text-xs">{a.day.slice(0, 3)} {a.start}–{a.end}</Badge>
