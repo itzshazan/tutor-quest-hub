@@ -306,7 +306,7 @@ export default function AdminTutors() {
                         </TableCell>
                         <TableCell>
                           {t.is_verified ? (
-                            <Badge className="bg-green-100 text-green-800">Verified</Badge>
+                            <Badge className="bg-primary/20 text-primary">Verified</Badge>
                           ) : (
                             <Badge variant="secondary">Unverified</Badge>
                           )}
