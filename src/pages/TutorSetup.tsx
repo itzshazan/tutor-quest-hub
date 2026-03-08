@@ -40,6 +40,8 @@ interface FormData {
   hourlyRate: number;
   location: string;
   gradeLevels: string[];
+  teachingMethod: string;
+  teachingRadius: number;
   availability: { day: string; start: string; end: string }[];
   verificationDocs: File[];
   existingDocs: { id: string; document_type: string; status: string }[];
@@ -56,6 +58,8 @@ const initialForm: FormData = {
   hourlyRate: 0,
   location: "",
   gradeLevels: [],
+  teachingMethod: "offline",
+  teachingRadius: 10,
   availability: [],
   verificationDocs: [],
   existingDocs: [],
