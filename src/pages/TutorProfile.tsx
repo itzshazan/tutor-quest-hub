@@ -219,6 +219,11 @@ const TutorProfile = () => {
             )}
 
             <ReviewSection tutorId={id!} />
+
+            {/* Report Tutor */}
+            {user && user.id !== id && (
+              <ReportTutorSection tutorId={id!} userId={user.id} />
+            )}
           </CardContent>
         </Card>
       </div>
