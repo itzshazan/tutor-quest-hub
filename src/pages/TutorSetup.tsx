@@ -30,9 +30,11 @@ const GRADE_LEVELS = [
   "Undergraduate", "Postgraduate", "Competitive Exams",
 ];
 
+type DocCategory = "id_proof" | "bachelor_degree" | "masters_degree" | "phd_certificate" | "teaching_certificate" | "experience";
+
 interface VerificationDoc {
   file: File;
-  category: "id_proof" | "education" | "experience";
+  category: DocCategory;
 }
 
 interface FormData {
