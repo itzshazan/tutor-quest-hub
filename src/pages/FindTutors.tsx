@@ -329,6 +329,17 @@ const FindTutors = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex-1 space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Availability</label>
+              <Select value={dayFilter} onValueChange={setDayFilter}>
+                <SelectTrigger><SelectValue placeholder="Any Day" /></SelectTrigger>
+                <SelectContent>
+                  {DAYS_OF_WEEK.map((d) => (
+                    <SelectItem key={d} value={d}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
 
