@@ -5,6 +5,7 @@ import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays, L
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "next-themes";
+import { motion, useScroll, useSpring } from "framer-motion";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -47,6 +48,9 @@ const Navbar = () => {
 
   const toggleTheme = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
 
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 300, damping: 40 });
+
   return (
     <nav
       className={`sticky top-0 z-50 transition-all duration-200 ${
@@ -55,6 +59,11 @@ const Navbar = () => {
           : "bg-transparent"
       }`}
     >
+      {/* Scroll progress bar */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-accent"
+        style={{ scaleX }}
+      />
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <a href="#home" className="flex items-center gap-2.5">
