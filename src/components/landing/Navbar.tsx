@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays, LayoutDashboard } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays, LayoutDashboard, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "next-themes";
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -16,6 +17,10 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [incompleteProfile, setIncompleteProfile] = useState(false);
   const { user, signOut } = useAuth();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!user || user.user_metadata?.role !== "tutor") {
@@ -31,6 +36,10 @@ const Navbar = () => {
         setIncompleteProfile(!data?.hourly_rate || data.hourly_rate === 0);
       });
   }, [user]);
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
@@ -54,6 +63,11 @@ const Navbar = () => {
           )}
         </div>
         <div className="hidden items-center gap-3 md:flex">
+          {mounted && (
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="rounded-full">
+              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          )}
           {user ? (
             <>
               <Button variant="ghost" size="sm" asChild className="gap-1.5">
@@ -84,9 +98,16 @@ const Navbar = () => {
           )}
         </div>
 
-        <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          {mounted && (
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="rounded-full">
+              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          )}
+          <button onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       {mobileOpen && (
