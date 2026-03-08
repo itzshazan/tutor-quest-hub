@@ -217,15 +217,21 @@ const TutorSetup = () => {
 
       // Upload verification documents
       for (const doc of form.verificationDocs) {
-        const docPath = `${user.id}/${Date.now()}-${doc.name}`;
+        const docPath = `${user.id}/${Date.now()}-${doc.file.name}`;
         const { error: docErr } = await supabase.storage
           .from("tutor-documents")
-          .upload(docPath, doc);
+          .upload(docPath, doc.file);
         if (docErr) throw docErr;
+
+        const categoryLabels: Record<string, string> = {
+          id_proof: "ID Proof",
+          education: "Education Certificate",
+          experience: "Experience Proof",
+        };
 
         const { error: insertErr } = await supabase.from("tutor_verifications").insert({
           tutor_id: user.id,
-          document_type: doc.name.split(".").pop()?.toUpperCase() || "FILE",
+          document_type: categoryLabels[doc.category] || doc.category,
           file_url: docPath,
         });
         if (insertErr) throw insertErr;
