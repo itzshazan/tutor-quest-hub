@@ -137,10 +137,10 @@ const TutorDashboard = () => {
   };
 
   const statCards = [
-    { label: "Total Students", value: stats.students, icon: Users, color: "text-primary" },
+    { label: "Total Earnings", value: `₹${stats.totalEarnings}`, icon: Wallet, color: "text-primary" },
+    { label: "Pending", value: `₹${stats.pendingEarnings}`, icon: IndianRupee, color: "text-accent-foreground" },
     { label: "Completed", value: stats.completed, icon: BookOpen, color: "text-secondary" },
     { label: "Avg Rating", value: stats.rating ? `${stats.rating}★` : "–", icon: Star, color: "text-accent-foreground" },
-    { label: "Reviews", value: stats.totalReviews, icon: Star, color: "text-accent-foreground" },
   ];
 
   return (
