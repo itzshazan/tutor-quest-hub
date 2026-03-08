@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Heart, ChevronLeft, ChevronRight, List, Map } from "lucide-react";
 import { VerificationBadges } from "@/components/VerificationBadges";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
@@ -16,6 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SEO } from "@/components/SEO";
+
+const TutorMapView = lazy(() => import("@/components/TutorMapView"));
 
 const ITEMS_PER_PAGE = 12;
 
