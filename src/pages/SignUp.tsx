@@ -19,6 +19,15 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [subjectsList, setSubjectsList] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      const { data } = await supabase.from("subjects").select("name").order("name");
+      if (data) setSubjectsList(data.map((s) => s.name));
+    };
+    fetchSubjects();
+  }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
