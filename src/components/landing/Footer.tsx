@@ -1,53 +1,85 @@
 import { GraduationCap } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const footerLinks = {
+  Product: [
+    { label: "Find Tutors", href: "/find-tutors", isRoute: true },
+    { label: "How It Works", href: "#how-it-works" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Become a Tutor", href: "#become-tutor" },
+  ],
+  Company: [
+    { label: "About", href: "#" },
+    { label: "Careers", href: "#" },
+    { label: "Contact", href: "#" },
+    { label: "Blog", href: "#" },
+  ],
+  Support: [
+    { label: "Help Center", href: "#" },
+    { label: "Safety", href: "#" },
+    { label: "Community", href: "#" },
+  ],
+  Legal: [
+    { label: "Privacy Policy", href: "#" },
+    { label: "Terms of Service", href: "#" },
+    { label: "Cookie Policy", href: "#" },
+  ],
+};
 
 const Footer = () => {
   return (
-    <footer className="border-t bg-card py-16">
-      <div className="container">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div>
-            <a href="#home" className="flex items-center gap-2 text-lg font-extrabold text-primary">
-              <GraduationCap className="h-6 w-6" />
-              Tutor Quest
-            </a>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Connecting students with trusted local tutors for personalized learning.
+    <footer className="border-t bg-card">
+      <div className="container py-16">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
+          {/* Brand - takes 2 columns */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                <GraduationCap className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <span className="text-lg font-bold text-foreground">Tutor Quest</span>
+            </div>
+            <p className="mt-4 max-w-xs text-body-sm text-muted-foreground leading-relaxed">
+              Connecting students with trusted local tutors for personalized,
+              high-quality learning experiences.
             </p>
           </div>
 
-          {/* Company */}
-          <div>
-            <h4 className="text-sm font-bold text-foreground">Company</h4>
-            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">About Tutor Quest</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h4 className="text-sm font-bold text-foreground">Resources</h4>
-            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Safety Guidelines</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Tutor Tips</a></li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="text-sm font-bold text-foreground">Legal</h4>
-            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-            </ul>
-          </div>
+          {/* Link Columns */}
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title}>
+              <h4 className="text-body-sm font-semibold text-foreground">{title}</h4>
+              <ul className="mt-4 space-y-3">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    {"isRoute" in link && link.isRoute ? (
+                      <Link to={link.href} className="text-body-sm text-muted-foreground transition-colors hover:text-foreground">
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a href={link.href} className="text-body-sm text-muted-foreground transition-colors hover:text-foreground">
+                        {link.label}
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
+      </div>
 
-        <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Tutor Quest. All rights reserved.
+      {/* Bottom bar */}
+      <div className="border-t">
+        <div className="container flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Tutor Quest. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Twitter</a>
+            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">LinkedIn</a>
+            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Instagram</a>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,57 +1,74 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
+import { motion } from "framer-motion";
 
 const studentBenefits = [
-  "Find trusted tutors easily",
-  "Personalized learning support",
-  "Improve academic performance",
+  "Find trusted, verified tutors near you",
+  "Personalized one-on-one learning support",
+  "Transparent pricing with secure payments",
+  "Improve academic performance with expert help",
 ];
 
 const tutorBenefits = [
-  "Reach local students",
-  "Increase teaching opportunities",
-  "Build reputation through reviews",
+  "Reach local students effortlessly",
+  "Set your own rates and schedule",
+  "Get paid securely with escrow protection",
+  "Build reputation through verified reviews",
 ];
 
 const BenefitsSection = () => {
   return (
-    <section className="py-24">
+    <section className="border-y bg-secondary/30 py-24 md:py-32">
       <div className="container">
         <ScrollReveal>
-          <div className="text-center">
-            <span className="text-sm font-semibold uppercase tracking-wider text-primary">Benefits</span>
-            <h2 className="mt-2 font-display text-3xl font-bold text-foreground md:text-4xl">Why Choose Tutor Quest?</h2>
-            <p className="mt-3 text-muted-foreground">Benefits for everyone on the platform</p>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">Benefits</p>
+            <h2 className="mt-3 text-display text-foreground">Why choose Tutor Quest?</h2>
+            <p className="mt-4 text-body-lg text-muted-foreground">
+              Built for both sides of the learning equation.
+            </p>
           </div>
         </ScrollReveal>
 
-        <div className="mt-14 grid gap-8 md:grid-cols-2">
+        <div className="mt-16 grid gap-8 md:grid-cols-2">
           <ScrollReveal variant="slideLeft" delay={0.1}>
-            <div className="rounded-3xl border-0 bg-card p-10 shadow-neumorphic">
-              <h3 className="font-display text-xl font-bold text-primary">For Students</h3>
-              <ul className="mt-6 space-y-5">
+            <motion.div
+              whileHover={{ y: -4 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="rounded-2xl border bg-card p-10 shadow-card"
+            >
+              <div className="inline-flex rounded-full bg-primary/10 px-4 py-1.5 text-body-sm font-semibold text-primary">
+                For Students
+              </div>
+              <ul className="mt-8 space-y-5">
                 {studentBenefits.map((b) => (
                   <li key={b} className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span className="text-foreground">{b}</span>
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                    <span className="text-body text-foreground">{b}</span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           </ScrollReveal>
 
           <ScrollReveal variant="slideRight" delay={0.1}>
-            <div className="rounded-3xl border-0 bg-card p-10 shadow-neumorphic">
-              <h3 className="font-display text-xl font-bold text-primary">For Tutors</h3>
-              <ul className="mt-6 space-y-5">
+            <motion.div
+              whileHover={{ y: -4 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="rounded-2xl border bg-card p-10 shadow-card"
+            >
+              <div className="inline-flex rounded-full bg-accent/10 px-4 py-1.5 text-body-sm font-semibold text-accent-foreground">
+                For Tutors
+              </div>
+              <ul className="mt-8 space-y-5">
                 {tutorBenefits.map((b) => (
                   <li key={b} className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span className="text-foreground">{b}</span>
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                    <span className="text-body text-foreground">{b}</span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           </ScrollReveal>
         </div>
       </div>
