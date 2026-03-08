@@ -37,7 +37,7 @@ const TutorDashboard = () => {
   const [pending, setPending] = useState<SessionRow[]>([]);
   const [upcoming, setUpcoming] = useState<SessionRow[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
-  const [stats, setStats] = useState({ students: 0, completed: 0, rating: 0, totalReviews: 0 });
+  const [stats, setStats] = useState({ students: 0, completed: 0, rating: 0, totalReviews: 0, totalEarnings: 0, pendingEarnings: 0 });
   const [profileComplete, setProfileComplete] = useState(100);
   const [loading, setLoading] = useState(true);
 
