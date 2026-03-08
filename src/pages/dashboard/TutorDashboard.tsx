@@ -34,6 +34,7 @@ interface ReviewRow {
 const TutorDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [pending, setPending] = useState<SessionRow[]>([]);
   const [upcoming, setUpcoming] = useState<SessionRow[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
