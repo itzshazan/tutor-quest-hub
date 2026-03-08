@@ -17,6 +17,7 @@ import {
   GraduationCap, Camera, ArrowRight, ArrowLeft, Check, BookOpen,
   MapPin, Clock, Loader2, X, User, DollarSign, Pencil, Upload, FileText,
 } from "lucide-react";
+import { validateImageFile, validateDocumentFile } from "@/lib/validations";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const TIME_SLOTS = [
