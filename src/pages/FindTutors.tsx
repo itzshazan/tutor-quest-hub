@@ -510,146 +510,175 @@ const FindTutors = () => {
           </ScrollReveal>
         ) : (
           <>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {tutors.length} tutor{tutors.length !== 1 ? "s" : ""} found
-              {tutors.length > ITEMS_PER_PAGE && ` · Page ${currentPage} of ${Math.ceil(tutors.length / ITEMS_PER_PAGE)}`}
-            </p>
-            <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" staggerDelay={0.08}>
-              {tutors
-                .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-                .map((t) => {
-                const name = t.profiles?.full_name || "Unknown Tutor";
-                const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-
-                return (
-                  <StaggerItem key={t.user_id}>
-                    <Card className="transition-shadow hover:shadow-lg">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                          <Avatar className="h-14 w-14 border-2 border-primary/20">
-                            <AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials}</AvatarFallback>
-                          </Avatar>
-                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="truncate font-semibold text-foreground">{name}</h3>
-                              <VerificationBadges
-                                isVerified={t.is_verified}
-                                education={t.education}
-                                rating={t.rating}
-                                totalReviews={t.total_reviews}
-                                compact
-                              />
-                            </div>
-                            <p className="text-sm text-muted-foreground">{t.subject}</p>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted-foreground">
-                          {t.experience_years && t.experience_years > 0 && (
-                            <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" /> {t.experience_years}y exp</span>
-                          )}
-                          {t.location && (
-                            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {t.location}</span>
-                          )}
-                          {t.rating && t.rating > 0 && (
-                            <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-accent text-accent" /> {t.rating}</span>
-                          )}
-                          {t.distance !== undefined && (
-                            <span className="flex items-center gap-1 text-primary font-medium">
-                              <Navigation className="h-3.5 w-3.5" /> {t.distance < 1 ? `${Math.round(t.distance * 1000)}m` : `${t.distance.toFixed(1)} km`}
-                            </span>
-                          )}
-                        </div>
-
-                        {t.grade_levels && t.grade_levels.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {t.grade_levels.slice(0, 3).map((g) => (
-                              <Badge key={g} variant="outline" className="text-xs">{g}</Badge>
-                            ))}
-                            {t.grade_levels.length > 3 && (
-                              <Badge variant="outline" className="text-xs">+{t.grade_levels.length - 3}</Badge>
-                            )}
-                          </div>
-                        )}
-
-                        {t.hourly_rate && t.hourly_rate > 0 && (
-                          <p className="mt-3 text-lg font-bold text-foreground">₹{t.hourly_rate}/hr</p>
-                        )}
-
-                        {t.profiles?.bio && (
-                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{t.profiles.bio}</p>
-                        )}
-
-                        <div className="mt-4 flex gap-3">
-                          <Button size="sm" className="flex-1" asChild>
-                            <Link to={`/tutor/${t.user_id}`}>View Profile</Link>
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1" asChild>
-                            <Link to={`/messages?tutor=${t.user_id}`}>Contact</Link>
-                          </Button>
-                          {user && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="shrink-0 px-2"
-                              onClick={() => toggleSave(t.user_id)}
-                              title={savedIds.has(t.user_id) ? "Unsave tutor" : "Save tutor"}
-                            >
-                              <Heart className={`h-4 w-4 ${savedIds.has(t.user_id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </StaggerItem>
-                );
-              })}
-            </StaggerContainer>
-
-            {/* Pagination */}
-            {tutors.length > ITEMS_PER_PAGE && (
-              <div className="mt-8 flex items-center justify-center gap-2">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {tutors.length} tutor{tutors.length !== 1 ? "s" : ""} found
+                {viewMode === "list" && tutors.length > ITEMS_PER_PAGE && ` · Page ${currentPage} of ${Math.ceil(tutors.length / ITEMS_PER_PAGE)}`}
+              </p>
+              <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
                 <Button
-                  variant="outline"
+                  variant={viewMode === "list" ? "default" : "ghost"}
                   size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="h-8 gap-1.5 px-3"
+                  onClick={() => setViewMode("list")}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <List className="h-4 w-4" /> List
                 </Button>
-                {Array.from({ length: Math.min(5, Math.ceil(tutors.length / ITEMS_PER_PAGE)) }, (_, i) => {
-                  const totalPages = Math.ceil(tutors.length / ITEMS_PER_PAGE);
-                  let pageNum: number;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      className="w-9"
-                      onClick={() => setCurrentPage(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
                 <Button
-                  variant="outline"
+                  variant={viewMode === "map" ? "default" : "ghost"}
                   size="sm"
-                  disabled={currentPage >= Math.ceil(tutors.length / ITEMS_PER_PAGE)}
-                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(tutors.length / ITEMS_PER_PAGE), p + 1))}
+                  className="h-8 gap-1.5 px-3"
+                  onClick={() => setViewMode("map")}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <Map className="h-4 w-4" /> Map
                 </Button>
               </div>
+            </div>
+
+            {viewMode === "map" ? (
+              <Suspense fallback={<Skeleton className="h-[500px] w-full rounded-xl" />}>
+                <TutorMapView tutors={tutors} searchCoords={searchCoords} />
+              </Suspense>
+            ) : (
+              <>
+                <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" staggerDelay={0.08}>
+                  {tutors
+                    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                    .map((t) => {
+                    const name = t.profiles?.full_name || "Unknown Tutor";
+                    const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+                    return (
+                      <StaggerItem key={t.user_id}>
+                        <Card className="transition-shadow hover:shadow-lg">
+                          <CardContent className="p-6">
+                            <div className="flex items-center gap-4">
+                              <Avatar className="h-14 w-14 border-2 border-primary/20">
+                                <AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials}</AvatarFallback>
+                              </Avatar>
+                               <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="truncate font-semibold text-foreground">{name}</h3>
+                                  <VerificationBadges
+                                    isVerified={t.is_verified}
+                                    education={t.education}
+                                    rating={t.rating}
+                                    totalReviews={t.total_reviews}
+                                    compact
+                                  />
+                                </div>
+                                <p className="text-sm text-muted-foreground">{t.subject}</p>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                              {t.experience_years && t.experience_years > 0 && (
+                                <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" /> {t.experience_years}y exp</span>
+                              )}
+                              {t.location && (
+                                <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {t.location}</span>
+                              )}
+                              {t.rating && t.rating > 0 && (
+                                <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-accent text-accent" /> {t.rating}</span>
+                              )}
+                              {t.distance !== undefined && (
+                                <span className="flex items-center gap-1 text-primary font-medium">
+                                  <Navigation className="h-3.5 w-3.5" /> {t.distance < 1 ? `${Math.round(t.distance * 1000)}m` : `${t.distance.toFixed(1)} km`}
+                                </span>
+                              )}
+                            </div>
+
+                            {t.grade_levels && t.grade_levels.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {t.grade_levels.slice(0, 3).map((g) => (
+                                  <Badge key={g} variant="outline" className="text-xs">{g}</Badge>
+                                ))}
+                                {t.grade_levels.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">+{t.grade_levels.length - 3}</Badge>
+                                )}
+                              </div>
+                            )}
+
+                            {t.hourly_rate && t.hourly_rate > 0 && (
+                              <p className="mt-3 text-lg font-bold text-foreground">₹{t.hourly_rate}/hr</p>
+                            )}
+
+                            {t.profiles?.bio && (
+                              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{t.profiles.bio}</p>
+                            )}
+
+                            <div className="mt-4 flex gap-3">
+                              <Button size="sm" className="flex-1" asChild>
+                                <Link to={`/tutor/${t.user_id}`}>View Profile</Link>
+                              </Button>
+                              <Button size="sm" variant="outline" className="flex-1" asChild>
+                                <Link to={`/messages?tutor=${t.user_id}`}>Contact</Link>
+                              </Button>
+                              {user && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="shrink-0 px-2"
+                                  onClick={() => toggleSave(t.user_id)}
+                                  title={savedIds.has(t.user_id) ? "Unsave tutor" : "Save tutor"}
+                                >
+                                  <Heart className={`h-4 w-4 ${savedIds.has(t.user_id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </StaggerItem>
+                    );
+                  })}
+                </StaggerContainer>
+
+                {/* Pagination */}
+                {tutors.length > ITEMS_PER_PAGE && (
+                  <div className="mt-8 flex items-center justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    {Array.from({ length: Math.min(5, Math.ceil(tutors.length / ITEMS_PER_PAGE)) }, (_, i) => {
+                      const totalPages = Math.ceil(tutors.length / ITEMS_PER_PAGE);
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          className="w-9"
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage >= Math.ceil(tutors.length / ITEMS_PER_PAGE)}
+                      onClick={() => setCurrentPage((p) => Math.min(Math.ceil(tutors.length / ITEMS_PER_PAGE), p + 1))}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
