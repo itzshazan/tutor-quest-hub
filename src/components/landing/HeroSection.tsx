@@ -1,15 +1,10 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, BookOpen, ArrowRight, CheckCircle2 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-
-const TRUST_ITEMS = [
-  "10,000+ students",
-  "Verified tutors",
-  "Secure payments",
-];
 
 /* Floating orbs config — generated once */
 const ORB_COUNT = 6;
@@ -33,6 +28,26 @@ const HeroSection = () => {
   const [location, setLocation] = useState("");
   const sectionRef = useRef<HTMLElement>(null);
   const orbs = useMemo(generateOrbs, []);
+  const [stats, setStats] = useState({ students: 0, tutors: 0 });
+
+  // Fetch real stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { count: studentCount } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "student");
+      const { count: tutorCount } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "tutor");
+      setStats({
+        students: studentCount || 0,
+        tutors: tutorCount || 0,
+      });
+    };
+    fetchStats();
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -49,6 +64,17 @@ const HeroSection = () => {
     if (location.trim()) params.set("location", location.trim());
     navigate(`/find-tutors?${params.toString()}`);
   };
+
+  // Dynamic trust items
+  const trustItems = [
+    `${stats.students > 0 ? stats.students.toLocaleString() + "+" : "10,000+"} students`,
+    "Verified tutors",
+    "Secure payments",
+  ];
+
+  const badgeText = stats.students > 0
+    ? `Trusted by ${stats.students.toLocaleString()}+ students across India`
+    : "Trusted by 10,000+ students across India";
 
   return (
     <section ref={sectionRef} id="home" className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24">
@@ -99,7 +125,7 @@ const HeroSection = () => {
           >
             <span className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-body-sm font-medium text-muted-foreground shadow-soft">
               <span className="h-2 w-2 rounded-full bg-accent" />
-              Trusted by 10,000+ students across India
+              {badgeText}
             </span>
           </motion.div>
 
@@ -186,7 +212,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.6 }}
             className="mt-10 flex flex-wrap items-center justify-center gap-6"
           >
-            {TRUST_ITEMS.map((item) => (
+            {trustItems.map((item) => (
               <div key={item} className="flex items-center gap-2 text-body-sm text-muted-foreground">
                 <CheckCircle2 className="h-4 w-4 text-accent" />
                 {item}

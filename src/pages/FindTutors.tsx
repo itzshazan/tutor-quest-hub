@@ -7,12 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Calendar, Heart } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { VerificationBadges } from "@/components/VerificationBadges";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
+
+const ITEMS_PER_PAGE = 12;
 
 interface TutorResult {
   user_id: string;
@@ -77,9 +80,10 @@ const FindTutors = () => {
   const [tutors, setTutors] = useState<TutorResult[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [sortByDistance, setSortByDistance] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [subjectFilter, setSubjectFilter] = useState(searchParams.get("subject") || "");
   const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
@@ -257,9 +261,62 @@ const FindTutors = () => {
               </Select>
             </div>
 
-            <Button variant="outline" className="gap-2 sm:hidden" onClick={() => setShowFilters(!showFilters)}>
-              <SlidersHorizontal className="h-4 w-4" /> More Filters
-            </Button>
+            {/* Mobile filters sheet */}
+            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2 sm:hidden">
+                  <SlidersHorizontal className="h-4 w-4" /> More Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-auto max-h-[70vh]">
+                <SheetHeader>
+                  <SheetTitle>Filter Options</SheetTitle>
+                </SheetHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Budget</label>
+                    <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {budgetOptions.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Rating</label>
+                    <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ratingOptions.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Availability</label>
+                    <Select value={dayFilter} onValueChange={setDayFilter}>
+                      <SelectTrigger><SelectValue placeholder="Any Day" /></SelectTrigger>
+                      <SelectContent>
+                        {DAYS_OF_WEEK.map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button className="flex-1" onClick={() => { handleSearch(); setMobileFiltersOpen(false); }}>
+                      Apply Filters
+                    </Button>
+                    <Button variant="outline" onClick={() => { clearFilters(); setMobileFiltersOpen(false); }}>
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
 
             <div className="hidden flex-1 min-w-[130px] space-y-1 sm:block">
               <label className="text-xs font-medium text-muted-foreground">Budget</label>
@@ -313,44 +370,6 @@ const FindTutors = () => {
           </div>
         </ScrollReveal>
 
-        {showFilters && (
-          <div className="mb-6 flex gap-3 sm:hidden">
-            <div className="flex-1 space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Budget</label>
-              <Select value={budgetFilter} onValueChange={setBudgetFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {budgetOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1 space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Rating</label>
-              <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {ratingOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1 space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Availability</label>
-              <Select value={dayFilter} onValueChange={setDayFilter}>
-                <SelectTrigger><SelectValue placeholder="Any Day" /></SelectTrigger>
-                <SelectContent>
-                  {DAYS_OF_WEEK.map((d) => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-
         {sortByDistance && userLocation && (
           <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
             <Navigation className="h-4 w-4 text-primary" />
@@ -381,9 +400,12 @@ const FindTutors = () => {
           <>
             <p className="mb-4 text-sm text-muted-foreground">
               {tutors.length} tutor{tutors.length !== 1 ? "s" : ""} found
+              {tutors.length > ITEMS_PER_PAGE && ` · Page ${currentPage} of ${Math.ceil(tutors.length / ITEMS_PER_PAGE)}`}
             </p>
             <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" staggerDelay={0.08}>
-              {tutors.map((t) => {
+              {tutors
+                .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                .map((t) => {
                 const name = t.profiles?.full_name || "Unknown Tutor";
                 const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
@@ -469,6 +491,52 @@ const FindTutors = () => {
                 );
               })}
             </StaggerContainer>
+
+            {/* Pagination */}
+            {tutors.length > ITEMS_PER_PAGE && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: Math.min(5, Math.ceil(tutors.length / ITEMS_PER_PAGE)) }, (_, i) => {
+                  const totalPages = Math.ceil(tutors.length / ITEMS_PER_PAGE);
+                  let pageNum: number;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className="w-9"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= Math.ceil(tutors.length / ITEMS_PER_PAGE)}
+                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(tutors.length / ITEMS_PER_PAGE), p + 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>
