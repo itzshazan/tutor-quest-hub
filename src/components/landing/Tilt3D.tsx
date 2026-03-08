@@ -1,5 +1,5 @@
 import { useRef, type ReactNode, type MouseEvent } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
 
 interface Tilt3DProps {
   children: ReactNode;
@@ -28,8 +28,11 @@ export const Tilt3D = ({
     stiffness: 300,
     damping: 30,
   });
-  const glareX = useTransform(x, [0, 1], ["-100%", "200%"]);
-  const glareY = useTransform(y, [0, 1], ["-100%", "200%"]);
+
+  // Glare position as percentages
+  const glareXPercent = useTransform(x, [0, 1], [0, 100]);
+  const glareYPercent = useTransform(y, [0, 1], [0, 100]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareXPercent}% ${glareYPercent}%, hsl(var(--accent) / 0.12), transparent 60%)`;
 
   const handleMove = (e: MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
@@ -55,18 +58,14 @@ export const Tilt3D = ({
         transformStyle: "preserve-3d",
         perspective: 800,
       }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={className}
     >
       {children}
       {glare && (
         <motion.div
-          className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity group-hover:opacity-100"
-          style={{
-            background: `radial-gradient(circle at var(--gx) var(--gy), hsl(var(--accent) / 0.12), transparent 60%)`,
-            // @ts-ignore -- CSS custom properties
-            "--gx": glareX,
-            "--gy": glareY,
-          }}
+          className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: glareBackground }}
         />
       )}
     </motion.div>
