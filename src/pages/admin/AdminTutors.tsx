@@ -148,6 +148,67 @@ export default function AdminTutors() {
     }
   };
 
+  const bulkUpdateDocStatus = async (status: string) => {
+    if (selectedDocIds.size === 0) return;
+    const ids = Array.from(selectedDocIds);
+    const { error } = await supabase
+      .from("tutor_verifications")
+      .update({ status, reviewed_at: new Date().toISOString() } as any)
+      .in("id", ids);
+
+    if (error) {
+      toast({ title: "Bulk update failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${ids.length} documents ${status}` });
+      setSelectedDocIds(new Set());
+      loadData();
+    }
+  };
+
+  const toggleDocSelection = (docId: string) => {
+    setSelectedDocIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(docId)) {
+        newSet.delete(docId);
+      } else {
+        newSet.add(docId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllPendingDocs = () => {
+    const pendingIds = docs.filter((d) => d.status === "pending").map((d) => d.id);
+    if (pendingIds.every((id) => selectedDocIds.has(id))) {
+      setSelectedDocIds(new Set());
+    } else {
+      setSelectedDocIds(new Set(pendingIds));
+    }
+  };
+
+  const handleExportTutors = () => {
+    exportToCSV(
+      tutors.map((t) => ({
+        name: t.tutor_name || "Unknown",
+        subjects: t.subjects?.join(", ") || t.subject || "",
+        hourly_rate: t.hourly_rate || 0,
+        rating: t.rating || 0,
+        reviews: t.total_reviews || 0,
+        trust_score: t.trust_score || 0,
+        verified: t.is_verified ? "Yes" : "No",
+      })),
+      `tutors-export-${format(new Date(), "yyyy-MM-dd")}`,
+      [
+        { key: "name", label: "Name" },
+        { key: "subjects", label: "Subjects" },
+        { key: "hourly_rate", label: "Rate (₹/hr)" },
+        { key: "rating", label: "Rating" },
+        { key: "reviews", label: "Reviews" },
+        { key: "trust_score", label: "Trust Score" },
+        { key: "verified", label: "Verified" },
+      ]
+    );
+
   const updateReportStatus = async (reportId: string, status: string) => {
     const notes = adminNotes[reportId] || null;
     const { error } = await supabase
