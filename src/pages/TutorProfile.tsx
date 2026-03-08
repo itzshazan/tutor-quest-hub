@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Star, MapPin, Briefcase, GraduationCap, BookOpen, ArrowLeft, MessageSquare, CalendarIcon, Flag, ShieldCheck } from "lucide-react";
+import { Star, MapPin, Briefcase, GraduationCap, BookOpen, ArrowLeft, MessageSquare, CalendarIcon, Flag, ShieldCheck, Heart } from "lucide-react";
+import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import ReviewSection from "@/components/ReviewSection";
@@ -37,6 +38,7 @@ const TutorProfile = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [tutor, setTutor] = useState<TutorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -155,6 +157,17 @@ const TutorProfile = () => {
                 >
                   <CalendarIcon className="h-4 w-4" /> Book Session
                 </Button>
+                {user && id && (
+                  <Button
+                    size="lg"
+                    variant="ghost"
+                    className="px-3"
+                    onClick={() => toggleSave(id)}
+                    title={savedIds.has(id) ? "Unsave tutor" : "Save tutor"}
+                  >
+                    <Heart className={`h-5 w-5 ${savedIds.has(id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+                  </Button>
+                )}
               </div>
             </div>
 

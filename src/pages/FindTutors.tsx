@@ -7,7 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Calendar } from "lucide-react";
+import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Calendar, Heart } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
 
@@ -69,6 +71,8 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 const FindTutors = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+  const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [tutors, setTutors] = useState<TutorResult[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -440,6 +444,17 @@ const FindTutors = () => {
                           <Button size="sm" variant="outline" className="flex-1" asChild>
                             <Link to={`/messages?tutor=${t.user_id}`}>Contact</Link>
                           </Button>
+                          {user && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="shrink-0 px-2"
+                              onClick={() => toggleSave(t.user_id)}
+                              title={savedIds.has(t.user_id) ? "Unsave tutor" : "Save tutor"}
+                            >
+                              <Heart className={`h-4 w-4 ${savedIds.has(t.user_id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

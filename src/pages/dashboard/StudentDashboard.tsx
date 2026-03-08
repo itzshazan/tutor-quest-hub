@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock } from "lucide-react";
+import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock, Heart } from "lucide-react";
+import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { format } from "date-fns";
 
 interface SessionRow {
@@ -38,10 +39,19 @@ const STATUS_COLORS: Record<string, string> = {
   declined: "bg-destructive/20 text-destructive",
 };
 
+interface SavedTutorRow {
+  tutor_id: string;
+  full_name: string;
+  subject: string;
+  avatar_url: string | null;
+}
+
 const StudentDashboard = () => {
   const { user } = useAuth();
+  const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [conversations, setConversations] = useState<ConvoRow[]>([]);
+  const [savedTutors, setSavedTutors] = useState<SavedTutorRow[]>([]);
   const [stats, setStats] = useState({ total: 0, upcoming: 0, tutors: 0, reviews: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -123,6 +133,35 @@ const StudentDashboard = () => {
       });
     }
     setConversations(enrichedConvos);
+
+    // Saved tutors
+    const { data: savedData } = await supabase
+      .from("saved_tutors")
+      .select("tutor_id")
+      .eq("student_id", uid);
+
+    if (savedData && savedData.length > 0) {
+      const savedTutorIds = savedData.map((s: any) => s.tutor_id);
+      const { data: tp } = await supabase
+        .from("tutor_profiles")
+        .select("user_id, subject")
+        .in("user_id", savedTutorIds);
+      const { data: sp } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", savedTutorIds);
+
+      const profileMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
+      sp?.forEach((p) => (profileMap[p.user_id] = { full_name: p.full_name, avatar_url: p.avatar_url }));
+
+      const merged: SavedTutorRow[] = (tp || []).map((t: any) => ({
+        tutor_id: t.user_id,
+        full_name: profileMap[t.user_id]?.full_name || "Tutor",
+        subject: t.subject,
+        avatar_url: profileMap[t.user_id]?.avatar_url,
+      }));
+      setSavedTutors(merged);
+    }
 
     setStats({
       total: allSessions.length,
@@ -239,6 +278,40 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Saved Tutors */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2"><Heart className="h-4 w-4 text-destructive" /> Saved Tutors</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : savedTutors.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No saved tutors yet. <Link to="/find-tutors" className="text-primary hover:underline">Browse tutors</Link> and tap the heart icon to save.</p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {savedTutors.map((t) => (
+                  <div key={t.tutor_id} className="flex items-center gap-3 rounded-lg border p-3">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={t.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {t.full_name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <Link to={`/tutor/${t.tutor_id}`} className="font-medium text-sm text-foreground hover:underline">{t.full_name}</Link>
+                      <p className="text-xs text-muted-foreground">{t.subject}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="shrink-0 px-2" onClick={() => toggleSave(t.tutor_id)}>
+                      <Heart className="h-4 w-4 fill-destructive text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

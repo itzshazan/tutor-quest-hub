@@ -156,6 +156,27 @@ export type Database = {
           },
         ]
       }
+      saved_tutors: {
+        Row: {
+          created_at: string
+          id: string
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       sessions: {
         Row: {
           created_at: string
