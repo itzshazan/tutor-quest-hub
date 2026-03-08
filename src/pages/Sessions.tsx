@@ -266,9 +266,9 @@ const Sessions = () => {
 
       <div className="container max-w-3xl py-8">
         <div className="mb-6 flex items-center justify-between">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <button onClick={() => window.history.length > 1 ? window.history.back() : window.location.assign("/")} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back
-          </Link>
+          </button>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" onClick={() => navigate("/payments")} className="gap-1.5">
               <IndianRupee className="h-4 w-4" /> Payment History
