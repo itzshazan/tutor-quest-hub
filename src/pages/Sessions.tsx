@@ -332,30 +332,36 @@ const Sessions = () => {
               </div>
 
               {/* Time */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Start Time</Label>
-                  <Select value={bookStart} onValueChange={setBookStart}>
-                    <SelectTrigger><SelectValue placeholder="Start" /></SelectTrigger>
-                    <SelectContent>
-                      {TIME_OPTIONS.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {bookDate && availableStartTimes.length === 0 ? (
+                <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                  The tutor is not available on {format(bookDate, "EEEE")}. Please select a different date.
                 </div>
-                <div className="space-y-2">
-                  <Label>End Time</Label>
-                  <Select value={bookEnd} onValueChange={setBookEnd}>
-                    <SelectTrigger><SelectValue placeholder="End" /></SelectTrigger>
-                    <SelectContent>
-                      {TIME_OPTIONS.filter((t) => t > bookStart).map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Start Time</Label>
+                    <Select value={bookStart} onValueChange={(v) => { setBookStart(v); setBookEnd(""); }}>
+                      <SelectTrigger><SelectValue placeholder="Start" /></SelectTrigger>
+                      <SelectContent>
+                        {availableStartTimes.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End Time</Label>
+                    <Select value={bookEnd} onValueChange={setBookEnd} disabled={!bookStart}>
+                      <SelectTrigger><SelectValue placeholder="End" /></SelectTrigger>
+                      <SelectContent>
+                        {availableEndTimes.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Notes */}
               <div className="space-y-2">

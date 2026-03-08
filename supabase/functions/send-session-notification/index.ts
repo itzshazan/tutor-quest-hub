@@ -78,6 +78,40 @@ function buildEmailHtml(
 </html>`;
 }
 
+function getInAppMessage(
+  event_type: string,
+  otherName: string,
+  isTutor: boolean
+): { title: string; message: string } {
+  const titles: Record<string, string> = {
+    booked: isTutor ? "New Session Request" : "Session Requested",
+    confirmed: "Session Confirmed",
+    declined: "Session Declined",
+    paid: isTutor ? "Payment Received" : "Payment Confirmed",
+    completed: "Session Completed",
+    cancelled: "Session Cancelled",
+  };
+
+  const messages: Record<string, string> = {
+    booked: isTutor
+      ? `${otherName} has requested a tutoring session with you.`
+      : `Your session request with ${otherName} has been sent.`,
+    confirmed: isTutor
+      ? `You confirmed the session with ${otherName}.`
+      : `${otherName} has confirmed your session.`,
+    declined: isTutor
+      ? `You declined the session with ${otherName}.`
+      : `${otherName} was unable to accept your session request.`,
+    paid: isTutor
+      ? `${otherName} has completed payment for your session.`
+      : `Your payment for the session with ${otherName} has been received.`,
+    completed: `Your session with ${otherName} is complete!`,
+    cancelled: `The session with ${otherName} has been cancelled.`,
+  };
+
+  return { title: titles[event_type] || "Notification", message: messages[event_type] || "" };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -118,39 +152,44 @@ serve(async (req) => {
     const tutorEmail = tutorAuth?.user?.email;
 
     // Determine recipients based on event type
-    const recipients: Array<{ email: string; name: string; isTutor: boolean; otherName: string }> = [];
+    const recipients: Array<{ userId: string; email: string; name: string; isTutor: boolean; otherName: string }> = [];
 
     if (event_type === "booked") {
-      // Notify tutor about new booking
-      if (tutorEmail) recipients.push({ email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
     } else if (event_type === "confirmed" || event_type === "declined") {
-      // Notify student about tutor's response
-      if (studentEmail) recipients.push({ email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
     } else if (event_type === "paid") {
-      // Notify tutor about payment
-      if (tutorEmail) recipients.push({ email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
-      // Also confirm to student
-      if (studentEmail) recipients.push({ email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
     } else if (event_type === "completed") {
-      // Notify both
-      if (tutorEmail) recipients.push({ email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
-      if (studentEmail) recipients.push({ email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
     } else if (event_type === "cancelled") {
-      // Notify both
-      if (tutorEmail) recipients.push({ email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
-      if (studentEmail) recipients.push({ email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
     }
 
-    // Send emails
+    // Send emails and create in-app notifications in parallel
     const results = await Promise.all(
       recipients.map(async (r) => {
+        // Create in-app notification
+        const inAppContent = getInAppMessage(event_type, r.otherName, r.isTutor);
+        const notificationPromise = supabaseAdmin.from("notifications").insert({
+          user_id: r.userId,
+          title: inAppContent.title,
+          message: inAppContent.message,
+          type: "session",
+          link: "/sessions",
+        });
+
+        // Send email
         const html = buildEmailHtml(
           event_type, r.name, r.otherName,
           session.subject, session.session_date, session.start_time, session.end_time,
           r.isTutor
         );
 
-        const res = await fetch("https://api.resend.com/emails", {
+        const emailPromise = fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -164,8 +203,15 @@ serve(async (req) => {
           }),
         });
 
-        const data = await res.json();
-        return { email: r.email, success: res.ok, data };
+        const [notifResult, emailRes] = await Promise.all([notificationPromise, emailPromise]);
+        const emailData = await emailRes.json();
+
+        return { 
+          email: r.email, 
+          emailSuccess: emailRes.ok, 
+          emailData,
+          notificationCreated: !notifResult.error 
+        };
       })
     );
 
