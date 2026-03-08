@@ -97,6 +97,8 @@ const TutorSetup = () => {
           hourlyRate: tutor?.hourly_rate || 0,
           location: tutor?.location || "",
           gradeLevels: (tutor as any)?.grade_levels || [],
+          teachingMethod: (tutor as any)?.teaching_method || "offline",
+          teachingRadius: (tutor as any)?.teaching_radius || 10,
         }));
       }
 
