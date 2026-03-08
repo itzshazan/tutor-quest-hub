@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
 import { GraduationCap, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Privacy Policy"
+        description="Learn how Tutor Quest collects, uses, and protects your personal information. Our commitment to your privacy."
+        url="/privacy"
+      />
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container flex items-center justify-between py-4">
