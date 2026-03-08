@@ -59,11 +59,12 @@ describe("SignUp", () => {
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
   });
 
-  it("renders role selection", () => {
+  it("renders role selection with student and tutor buttons", () => {
     renderSignUp();
-    expect(screen.getByText(/i am a/i)).toBeInTheDocument();
-    expect(screen.getByText(/student/i)).toBeInTheDocument();
-    expect(screen.getByText(/tutor/i)).toBeInTheDocument();
+    // Based on actual rendered output
+    expect(screen.getByText(/join as a student or tutor/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /student/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tutor/i })).toBeInTheDocument();
   });
 
   it("renders Google sign up button", () => {
@@ -84,8 +85,8 @@ describe("SignUp", () => {
   it("shows password strength indicator when typing", async () => {
     renderSignUp();
 
-    const passwordInputs = screen.getAllByPlaceholderText(/••••••••/i);
-    const passwordInput = passwordInputs[0]; // First one is the password field
+    // Get password input by label
+    const passwordInput = screen.getByLabelText(/^password$/i);
     
     fireEvent.change(passwordInput, { target: { value: "Test123!" } });
 
@@ -110,8 +111,8 @@ describe("SignUp", () => {
       target: { value: "john@example.com" },
     });
     
-    const passwordInputs = screen.getAllByPlaceholderText(/••••••••/i);
-    fireEvent.change(passwordInputs[0], {
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    fireEvent.change(passwordInput, {
       target: { value: "StrongPass123!" },
     });
 
@@ -126,10 +127,10 @@ describe("SignUp", () => {
   it("allows role toggle between student and tutor", () => {
     renderSignUp();
 
-    const tutorButton = screen.getByText(/tutor/i);
+    const tutorButton = screen.getByRole("button", { name: /tutor/i });
     fireEvent.click(tutorButton);
 
-    // The tutor option should be clickable
+    // The tutor button should be clickable
     expect(tutorButton).toBeInTheDocument();
   });
 });
