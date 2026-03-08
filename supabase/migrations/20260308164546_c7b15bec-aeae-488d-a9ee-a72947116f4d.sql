@@ -1,0 +1,1 @@
+DELETE FROM payments WHERE session_id = '6b8fd0a5-e60e-456c-9d13-6b87b95de5cf' AND stripe_payment_intent_id IS NULL AND payment_status = 'pending';
