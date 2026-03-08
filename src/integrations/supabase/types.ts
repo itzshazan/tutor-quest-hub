@@ -80,7 +80,10 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          latitude: number | null
+          longitude: number | null
           phone: string | null
+          preferred_subjects: string[] | null
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
           user_id: string
@@ -91,7 +94,10 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
+          preferred_subjects?: string[] | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id: string
@@ -102,7 +108,10 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
+          preferred_subjects?: string[] | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id?: string
@@ -239,6 +248,7 @@ export type Database = {
           created_at: string
           education: string | null
           experience_years: number | null
+          grade_levels: string[] | null
           hourly_rate: number | null
           id: string
           is_verified: boolean | null
@@ -254,6 +264,7 @@ export type Database = {
           created_at?: string
           education?: string | null
           experience_years?: number | null
+          grade_levels?: string[] | null
           hourly_rate?: number | null
           id?: string
           is_verified?: boolean | null
@@ -269,6 +280,7 @@ export type Database = {
           created_at?: string
           education?: string | null
           experience_years?: number | null
+          grade_levels?: string[] | null
           hourly_rate?: number | null
           id?: string
           is_verified?: boolean | null
@@ -279,6 +291,36 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tutor_verifications: {
+        Row: {
+          created_at: string
+          document_type: string
+          file_url: string
+          id: string
+          reviewed_at: string | null
+          status: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          file_url: string
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          file_url?: string
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          tutor_id?: string
         }
         Relationships: []
       }
