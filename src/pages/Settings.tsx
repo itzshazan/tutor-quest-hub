@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Save, Loader2, MapPin, X, Check } from "lucide-react";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
+import { phoneSchema, validateImageFile } from "@/lib/validations";
 
 interface ProfileData {
   full_name: string;
@@ -30,6 +31,7 @@ const Settings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
   const [profile, setProfile] = useState<ProfileData>({
     full_name: "",
     phone: "",
