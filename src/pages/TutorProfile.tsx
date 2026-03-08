@@ -125,16 +125,29 @@ const TutorProfile = () => {
                 <p className="text-sm text-muted-foreground">Hourly Rate</p>
                 <p className="font-display text-3xl font-bold text-foreground">₹{tutor.hourly_rate}</p>
               </div>
-              <Button
-                size="lg"
-                className="gap-2"
-                onClick={() => {
-                  if (!user) { navigate("/login"); return; }
-                  navigate(`/messages?tutor=${id}`);
-                }}
-              >
-                <MessageSquare className="h-4 w-4" /> Contact Tutor
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    if (!user) { navigate("/login"); return; }
+                    navigate(`/messages?tutor=${id}`);
+                  }}
+                >
+                  <MessageSquare className="h-4 w-4" /> Message
+                </Button>
+                <Button
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => {
+                    if (!user) { navigate("/login"); return; }
+                    navigate(`/sessions?tutor=${id}&subject=${encodeURIComponent(tutor.subject)}`);
+                  }}
+                >
+                  <CalendarIcon className="h-4 w-4" /> Book Session
+                </Button>
+              </div>
             </div>
 
             {/* Bio */}
