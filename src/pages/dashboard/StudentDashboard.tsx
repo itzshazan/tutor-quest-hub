@@ -134,6 +134,35 @@ const StudentDashboard = () => {
     }
     setConversations(enrichedConvos);
 
+    // Saved tutors
+    const { data: savedData } = await supabase
+      .from("saved_tutors")
+      .select("tutor_id")
+      .eq("student_id", uid);
+
+    if (savedData && savedData.length > 0) {
+      const savedTutorIds = savedData.map((s: any) => s.tutor_id);
+      const { data: tp } = await supabase
+        .from("tutor_profiles")
+        .select("user_id, subject")
+        .in("user_id", savedTutorIds);
+      const { data: sp } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", savedTutorIds);
+
+      const profileMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
+      sp?.forEach((p) => (profileMap[p.user_id] = { full_name: p.full_name, avatar_url: p.avatar_url }));
+
+      const merged: SavedTutorRow[] = (tp || []).map((t: any) => ({
+        tutor_id: t.user_id,
+        full_name: profileMap[t.user_id]?.full_name || "Tutor",
+        subject: t.subject,
+        avatar_url: profileMap[t.user_id]?.avatar_url,
+      }));
+      setSavedTutors(merged);
+    }
+
     setStats({
       total: allSessions.length,
       upcoming: upcoming.length,
