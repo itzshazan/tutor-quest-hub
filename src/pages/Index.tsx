@@ -5,6 +5,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import PlatformFeatures from "@/components/landing/PlatformFeatures";
 import FeaturedTutors from "@/components/landing/FeaturedTutors";
 import BenefitsSection from "@/components/landing/BenefitsSection";
+import PricingSection from "@/components/landing/PricingSection";
 import TutorCTA from "@/components/landing/TutorCTA";
 import Testimonials from "@/components/landing/Testimonials";
 import Footer from "@/components/landing/Footer";
@@ -19,8 +20,9 @@ const Index = () => {
       <PlatformFeatures />
       <FeaturedTutors />
       <BenefitsSection />
-      <TutorCTA />
+      <PricingSection />
       <Testimonials />
+      <TutorCTA />
       <Footer />
     </div>
   );
