@@ -180,6 +180,9 @@ const TutorProfile = () => {
                 </div>
               )}
             </div>
+
+            {/* Reviews */}
+            <ReviewSection tutorId={id!} />
           </CardContent>
         </Card>
       </div>
