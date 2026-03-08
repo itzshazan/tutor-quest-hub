@@ -396,13 +396,13 @@ const TutorSetup = () => {
                 </div>
               </div>
 
-              {/* Verification Documents */}
-              <div className="space-y-3">
+              {/* Verification Documents - Categorized */}
+              <div className="space-y-4">
                 <Label className="flex items-center gap-2">
                   <FileText className="h-4 w-4" /> Verification Documents
                 </Label>
-                <p className="text-xs text-muted-foreground">Upload ID proof, certificates, or qualifications for admin verification</p>
-                
+                <p className="text-xs text-muted-foreground">Upload documents for admin verification. Categorize each upload.</p>
+
                 {form.existingDocs.length > 0 && (
                   <div className="space-y-1.5">
                     {form.existingDocs.map((doc) => (
@@ -417,20 +417,43 @@ const TutorSetup = () => {
                   </div>
                 )}
 
-                {form.verificationDocs.map((doc, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm rounded-md border p-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="truncate flex-1">{doc.name}</span>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeDoc(i)}>
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
+                {form.verificationDocs.map((doc, i) => {
+                  const categoryLabels: Record<string, string> = {
+                    id_proof: "🪪 ID Proof",
+                    education: "🎓 Education",
+                    experience: "💼 Experience",
+                  };
+                  return (
+                    <div key={i} className="flex items-center gap-2 text-sm rounded-md border p-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <Badge variant="outline" className="text-xs shrink-0">{categoryLabels[doc.category]}</Badge>
+                      <span className="truncate flex-1">{doc.file.name}</span>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeDoc(i)}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  );
+                })}
 
-                <label htmlFor="doc-upload" className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed p-3 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                  <Upload className="h-4 w-4" /> Upload document (PDF, JPG, PNG — max 10 MB)
-                </label>
-                <input id="doc-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" multiple onChange={handleDocUpload} />
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Document Category</label>
+                    <Select value={docCategory} onValueChange={(v: any) => setDocCategory(v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="id_proof">🪪 ID Proof (Aadhaar, PAN, Passport)</SelectItem>
+                        <SelectItem value="education">🎓 Education Certificate</SelectItem>
+                        <SelectItem value="experience">💼 Experience / Employment Proof</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <label htmlFor="doc-upload" className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-dashed px-4 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors whitespace-nowrap">
+                    <Upload className="h-4 w-4" /> Upload
+                  </label>
+                  <input id="doc-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" multiple onChange={handleDocUpload} />
+                </div>
               </div>
             </CardContent>
           </Card>
