@@ -148,7 +148,7 @@ const Navbar = () => {
         {/* Mobile */}
         <div className="flex items-center gap-2 lg:hidden">
           {mounted && (
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 rounded-full">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 rounded-full" aria-label="Toggle theme">
               {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
           )}

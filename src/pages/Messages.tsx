@@ -54,51 +54,89 @@ const Messages = () => {
     if (!authLoading && !user) navigate("/login");
   }, [authLoading, user, navigate]);
 
-  // Load conversations
+  // Load conversations with optimized single-query approach
   const loadConversations = useCallback(async () => {
     if (!user) return;
+
+    // Step 1: Fetch all conversations for the user
     const { data: convos } = await supabase
       .from("conversations")
       .select("*")
       .or(`student_id.eq.${user.id},tutor_id.eq.${user.id}`)
       .order("updated_at", { ascending: false });
 
-    if (!convos) { setLoadingConvos(false); return; }
+    if (!convos || convos.length === 0) {
+      setConversations([]);
+      setLoadingConvos(false);
+      return;
+    }
 
-    const enriched: Conversation[] = await Promise.all(
-      convos.map(async (c) => {
-        const otherId = c.student_id === user.id ? c.tutor_id : c.student_id;
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name, avatar_url")
-          .eq("user_id", otherId)
-          .single();
-
-        // Get last message
-        const { data: lastMsg } = await supabase
-          .from("messages")
-          .select("content")
-          .eq("conversation_id", c.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-
-        // Unread count
-        const { count } = await supabase
-          .from("messages")
-          .select("id", { count: "exact", head: true })
-          .eq("conversation_id", c.id)
-          .neq("sender_id", user.id)
-          .is("read_at", null);
-
-        return {
-          ...c,
-          other_user: profile || { full_name: "Unknown", avatar_url: null },
-          last_message: lastMsg?.content,
-          unread_count: count || 0,
-        };
-      })
+    // Step 2: Collect all other user IDs in one array
+    const otherUserIds = convos.map((c) =>
+      c.student_id === user.id ? c.tutor_id : c.student_id
     );
+    const convoIds = convos.map((c) => c.id);
+
+    // Step 3: Batch fetch all profiles at once (no N+1)
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, avatar_url")
+      .in("user_id", otherUserIds);
+
+    const profileMap = new Map(
+      (profiles || []).map((p) => [p.user_id, p])
+    );
+
+    // Step 4: Batch fetch last messages for all conversations
+    // Use a single query with window function approach via ordering
+    const { data: allMessages } = await supabase
+      .from("messages")
+      .select("conversation_id, content, created_at")
+      .in("conversation_id", convoIds)
+      .order("created_at", { ascending: false });
+
+    // Group by conversation and get first (latest) message
+    const lastMessageMap = new Map<string, string>();
+    if (allMessages) {
+      for (const msg of allMessages) {
+        if (!lastMessageMap.has(msg.conversation_id)) {
+          lastMessageMap.set(msg.conversation_id, msg.content);
+        }
+      }
+    }
+
+    // Step 5: Batch fetch unread counts
+    const { data: unreadMessages } = await supabase
+      .from("messages")
+      .select("conversation_id")
+      .in("conversation_id", convoIds)
+      .neq("sender_id", user.id)
+      .is("read_at", null);
+
+    const unreadCountMap = new Map<string, number>();
+    if (unreadMessages) {
+      for (const msg of unreadMessages) {
+        unreadCountMap.set(
+          msg.conversation_id,
+          (unreadCountMap.get(msg.conversation_id) || 0) + 1
+        );
+      }
+    }
+
+    // Step 6: Combine all data
+    const enriched: Conversation[] = convos.map((c) => {
+      const otherId = c.student_id === user.id ? c.tutor_id : c.student_id;
+      const profile = profileMap.get(otherId);
+
+      return {
+        ...c,
+        other_user: profile
+          ? { full_name: profile.full_name, avatar_url: profile.avatar_url }
+          : { full_name: "Unknown", avatar_url: null },
+        last_message: lastMessageMap.get(c.id),
+        unread_count: unreadCountMap.get(c.id) || 0,
+      };
+    });
 
     setConversations(enriched);
     setLoadingConvos(false);
@@ -270,19 +308,20 @@ const Messages = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden" id="main-content">
         {/* Conversation list */}
         <div
           className={`w-full border-r md:w-80 md:block ${activeConvoId ? "hidden" : "block"}`}
         >
           <div className="p-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <Input
                 placeholder="Search conversations..."
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search conversations"
               />
             </div>
           </div>
@@ -292,7 +331,7 @@ const Messages = () => {
               <ConversationListSkeleton />
             ) : filteredConvos.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center">
-                <MessageSquare className="h-10 w-10 text-muted-foreground/40" />
+                <MessageSquare className="h-10 w-10 text-muted-foreground/40" aria-hidden="true" />
                 <p className="mt-3 text-sm font-medium text-muted-foreground">No conversations yet</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Find a tutor and start chatting!
@@ -302,7 +341,7 @@ const Messages = () => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-0.5 p-1">
+              <div className="space-y-0.5 p-1" role="list" aria-label="Conversations">
                 {filteredConvos.map((c) => {
                   const initials = c.other_user.full_name
                     .split(" ")
@@ -320,6 +359,8 @@ const Messages = () => {
                           ? "bg-primary/10"
                           : "hover:bg-muted"
                       }`}
+                      role="listitem"
+                      aria-current={isActive ? "true" : undefined}
                     >
                       <Avatar className="h-10 w-10 shrink-0">
                         <AvatarImage src={c.other_user.avatar_url || undefined} />
@@ -339,7 +380,7 @@ const Messages = () => {
                             {c.last_message || "No messages yet"}
                           </p>
                           {c.unread_count > 0 && (
-                            <span className="ml-2 flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                            <span className="ml-2 flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground" aria-label={`${c.unread_count} unread messages`}>
                               {c.unread_count}
                             </span>
                           )}
@@ -357,7 +398,7 @@ const Messages = () => {
         <div className={`flex flex-1 flex-col ${!activeConvoId ? "hidden md:flex" : "flex"}`}>
           {!activeConvoId ? (
             <div className="flex flex-1 flex-col items-center justify-center text-center">
-              <MessageSquare className="h-16 w-16 text-muted-foreground/20" />
+              <MessageSquare className="h-16 w-16 text-muted-foreground/20" aria-hidden="true" />
               <p className="mt-4 font-display text-lg font-semibold text-muted-foreground">
                 Select a conversation
               </p>
@@ -372,6 +413,7 @@ const Messages = () => {
                 <Link
                   to="/messages"
                   className="md:hidden text-muted-foreground hover:text-foreground"
+                  aria-label="Back to conversations"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Link>
@@ -406,7 +448,7 @@ const Messages = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2" role="log" aria-label="Messages" aria-live="polite">
                     {messages.map((msg) => {
                       const isMine = msg.sender_id === user?.id;
                       return (
@@ -430,8 +472,8 @@ const Messages = () => {
                               {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
                               {isMine && (
                                 msg.read_at
-                                  ? <CheckCheck className="h-3 w-3" />
-                                  : <Check className="h-3 w-3" />
+                                  ? <CheckCheck className="h-3 w-3" aria-label="Read" />
+                                  : <Check className="h-3 w-3" aria-label="Sent" />
                               )}
                             </div>
                           </div>
@@ -453,11 +495,13 @@ const Messages = () => {
                     maxLength={2000}
                     className="flex-1"
                     disabled={sending}
+                    aria-label="Message input"
                   />
                   <Button
                     type="submit"
                     size="icon"
                     disabled={!newMessage.trim() || sending}
+                    aria-label="Send message"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

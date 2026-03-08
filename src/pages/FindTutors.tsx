@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -112,6 +113,9 @@ const FindTutors = () => {
     }
   };
 
+  // Debounce location filter to avoid firing query on every keystroke
+  const debouncedLocation = useDebounce(locationFilter, 400);
+
   useEffect(() => {
     const fetchTutors = async () => {
       setLoading(true);
@@ -135,8 +139,8 @@ const FindTutors = () => {
       if (subjectFilter) {
         query = query.or(`subject.ilike.%${subjectFilter}%,subjects.cs.{${subjectFilter}}`);
       }
-      if (locationFilter) {
-        query = query.ilike("location", `%${locationFilter}%`);
+      if (debouncedLocation) {
+        query = query.ilike("location", `%${debouncedLocation}%`);
       }
       if (ratingFilter && ratingFilter !== "0") {
         query = query.gte("rating", parseFloat(ratingFilter));
@@ -182,7 +186,7 @@ const FindTutors = () => {
     };
 
     fetchTutors();
-  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter, gradeFilter, dayFilter, userLocation, sortByDistance]);
+  }, [subjectFilter, debouncedLocation, ratingFilter, budgetFilter, gradeFilter, dayFilter, userLocation, sortByDistance]);
 
   const handleSearch = () => {
     const params: Record<string, string> = {};
@@ -358,11 +362,11 @@ const FindTutors = () => {
               <Button onClick={handleSearch} className="gap-2">
                 <Search className="h-4 w-4" /> Search
               </Button>
-              <Button variant="outline" size="icon" onClick={detectLocation} title="Sort by distance">
+              <Button variant="outline" size="icon" onClick={detectLocation} aria-label="Sort by distance from your location">
                 <Navigation className="h-4 w-4" />
               </Button>
               {hasActiveFilters && (
-                <Button variant="ghost" size="icon" onClick={clearFilters} title="Clear filters">
+                <Button variant="ghost" size="icon" onClick={clearFilters} aria-label="Clear filters">
                   <X className="h-4 w-4" />
                 </Button>
               )}

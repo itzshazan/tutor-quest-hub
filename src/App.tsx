@@ -12,6 +12,7 @@ import { RoleGuard } from "@/components/guards/RoleGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { SkipToContent } from "@/components/SkipToContent";
 
 // Eager-loaded (critical path)
 import Index from "./pages/Index";
@@ -133,13 +134,16 @@ const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <SkipToContent />
         <Toaster />
         <Sonner />
         <OfflineBanner />
         <BrowserRouter>
           <AuthProvider>
             <ErrorBoundary>
-              <AnimatedRoutes />
+              <main id="main-content">
+                <AnimatedRoutes />
+              </main>
             </ErrorBoundary>
           </AuthProvider>
         </BrowserRouter>

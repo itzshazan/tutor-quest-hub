@@ -322,7 +322,7 @@ const TutorSetup = () => {
     <div className="min-h-screen bg-background">
       <div className="border-b bg-card">
         <div className="container flex h-16 items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)} aria-label="Go back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <GraduationCap className="h-7 w-7 text-primary" />
