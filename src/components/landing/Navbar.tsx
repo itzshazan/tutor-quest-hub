@@ -57,6 +57,11 @@ const Navbar = () => {
           {user ? (
             <>
               <Button variant="ghost" size="sm" asChild className="gap-1.5">
+                <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"}>
+                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="gap-1.5">
                 <Link to="/messages"><MessageSquare className="h-4 w-4" /> Messages</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild className="gap-1.5">
