@@ -37,6 +37,9 @@ const AdminTutors = lazy(() => import("./pages/admin/AdminTutors"));
 const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TutorEarnings = lazy(() => import("./pages/TutorEarnings"));
 
 const queryClient = new QueryClient();
 
