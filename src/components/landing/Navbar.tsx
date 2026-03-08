@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Menu, X, LogOut, UserCog } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -56,6 +56,9 @@ const Navbar = () => {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
+              <Button variant="ghost" size="sm" asChild className="gap-1.5">
+                <Link to="/messages"><MessageSquare className="h-4 w-4" /> Messages</Link>
+              </Button>
               {incompleteProfile && (
                 <Button variant="outline" size="sm" asChild className="gap-1.5 border-accent text-accent-foreground">
                   <Link to="/tutor/setup"><UserCog className="h-4 w-4" /> Complete Profile</Link>
@@ -95,6 +98,11 @@ const Navbar = () => {
             <div className="flex flex-col gap-3 pt-2">
               {user ? (
                 <>
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <Link to="/messages" onClick={() => setMobileOpen(false)}>
+                      <MessageSquare className="h-4 w-4" /> Messages
+                    </Link>
+                  </Button>
                   {incompleteProfile && (
                     <Button variant="outline" size="sm" className="gap-1.5 border-accent" asChild>
                       <Link to="/tutor/setup" onClick={() => setMobileOpen(false)}>
