@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, GraduationCap, CalendarDays, Star, IndianRupee } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { format, subDays, startOfDay } from "date-fns";
+import { format, subDays } from "date-fns";
+import { AdminDashboardSkeleton } from "@/components/skeletons/AdminDashboardSkeleton";
 
 interface Stats {
   totalUsers: number;
