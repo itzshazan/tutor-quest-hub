@@ -15,6 +15,7 @@ import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
 import { useDebounce } from "@/hooks/useDebounce";
+import { SEO } from "@/components/SEO";
 
 const ITEMS_PER_PAGE = 12;
 
