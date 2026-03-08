@@ -63,19 +63,24 @@ const SignUp = () => {
     if (error) {
       toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
     } else {
-      // Save phone, preferred subjects and geolocation
+      // Save phone, preferred subjects and geolocation with retry
       if (signUpData.user) {
-        setTimeout(async () => {
+        const userId = signUpData.user.id;
+        const saveProfileExtras = async (retries = 5) => {
           const updates: Record<string, any> = {};
           if (phone.trim()) updates.phone = phone.trim();
           if (role === "student" && preferredSubjects.length > 0) {
             updates.preferred_subjects = preferredSubjects;
           }
           if (Object.keys(updates).length > 0) {
-            await supabase
+            const { error } = await supabase
               .from("profiles")
               .update(updates as any)
-              .eq("user_id", signUpData.user!.id);
+              .eq("user_id", userId);
+            if (error && retries > 0) {
+              await new Promise((r) => setTimeout(r, 1000));
+              return saveProfileExtras(retries - 1);
+            }
           }
           // Capture geolocation
           if (navigator.geolocation) {
@@ -86,10 +91,11 @@ const SignUp = () => {
                   latitude: pos.coords.latitude,
                   longitude: pos.coords.longitude,
                 } as any)
-                .eq("user_id", signUpData.user!.id);
+                .eq("user_id", userId);
             }, () => {});
           }
-        }, 2000);
+        };
+        saveProfileExtras();
       }
 
       toast({ title: "Account created!", description: "Please check your email to confirm your account." });
