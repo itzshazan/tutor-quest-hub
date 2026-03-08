@@ -5,21 +5,43 @@ import { Link } from "react-router-dom";
 
 const TutorCTA = () => {
   return (
-    <section id="become-tutor" className="py-24">
+    <section id="become-tutor" className="py-24 md:py-32">
       <div className="container">
         <ScrollReveal variant="scaleIn">
-          <div className="relative overflow-hidden rounded-3xl px-8 py-20 text-center md:px-16" style={{ background: "var(--cta-gradient)" }}>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
-            <div className="relative">
-              <h2 className="font-display text-3xl font-bold text-primary-foreground md:text-4xl">Are you a Tutor?</h2>
-              <p className="mx-auto mt-4 max-w-lg text-lg text-primary-foreground/80">
-                Start teaching students in your area. Join thousands of tutors growing their practice on Tutor Quest.
+          <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-20 text-center md:px-16">
+            {/* Decorative elements */}
+            <div className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+
+            <div className="relative mx-auto max-w-2xl">
+              <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">
+                For Educators
               </p>
-              <Button size="lg" variant="secondary" className="mt-8 gap-2 bg-card text-foreground hover:bg-card/90 shadow-elevated" asChild>
-                <Link to="/signup">
-                  Become a Tutor <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+              <h2 className="mt-4 text-display text-primary-foreground">
+                Start teaching students in your area
+              </h2>
+              <p className="mx-auto mt-4 max-w-lg text-body-lg text-primary-foreground/70">
+                Join thousands of tutors growing their practice on Tutor Quest. Set your own rates, schedule, and teaching preferences.
+              </p>
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+                <Button
+                  size="lg"
+                  className="gap-2 rounded-full bg-accent px-8 text-accent-foreground hover:bg-accent/90"
+                  asChild
+                >
+                  <Link to="/signup">
+                    Become a Tutor <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full border-primary-foreground/20 px-8 text-primary-foreground hover:bg-primary-foreground/10"
+                  asChild
+                >
+                  <Link to="/find-tutors">Browse Tutors</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </ScrollReveal>

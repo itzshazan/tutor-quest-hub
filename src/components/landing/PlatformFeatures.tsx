@@ -1,47 +1,57 @@
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, ShieldCheck, MessageSquare, Calendar } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
-import featureLocation from "@/assets/feature-location.png";
-import featureVerified from "@/assets/feature-verified.png";
-import featureChat from "@/assets/feature-chat.png";
-import featureSchedule from "@/assets/feature-schedule.png";
+import { motion } from "framer-motion";
 
 const features = [
-  { image: featureLocation, title: "Location-Based Search", desc: "Find tutors near your location with distance-aware search results." },
-  { image: featureVerified, title: "Verified Profiles", desc: "Every profile includes education, experience, and authentic ratings." },
-  { image: featureChat, title: "Direct Communication", desc: "Message tutors directly to discuss your learning needs." },
-  { image: featureSchedule, title: "Flexible Scheduling", desc: "Schedule sessions based on both your and the tutor's availability." },
+  {
+    icon: MapPin,
+    title: "Location-Based Search",
+    desc: "Find tutors near your location with distance-aware search and map-based discovery.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Verified Profiles",
+    desc: "Every tutor is vetted with verified education credentials, experience, and authentic ratings.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Direct Communication",
+    desc: "Message tutors directly through the platform to discuss learning needs before booking.",
+  },
+  {
+    icon: Calendar,
+    title: "Flexible Scheduling",
+    desc: "Schedule sessions based on mutual availability with automated reminders.",
+  },
 ];
 
 const PlatformFeatures = () => {
   return (
-    <section className="py-24">
+    <section className="border-y bg-secondary/30 py-24 md:py-32">
       <div className="container">
         <ScrollReveal>
-          <div className="text-center">
-            <span className="text-sm font-semibold uppercase tracking-wider text-primary">Features</span>
-            <h2 className="mt-2 font-display text-3xl font-bold text-foreground md:text-4xl">Everything You Need</h2>
-            <p className="mt-3 text-muted-foreground">A complete platform for a great tutoring experience</p>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">Platform Features</p>
+            <h2 className="mt-3 text-display text-foreground">Everything you need for better learning</h2>
+            <p className="mt-4 text-body-lg text-muted-foreground">
+              A complete platform built for a seamless tutoring experience.
+            </p>
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
+        <StaggerContainer className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.08}>
           {features.map((f) => (
             <StaggerItem key={f.title}>
-              <motion.div whileHover={{ y: -6, scale: 1.02 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-                <Card className="border-0 shadow-neumorphic hover:shadow-elevated group cursor-pointer">
-                  <CardContent className="p-8 text-center">
-                    <motion.div
-                      className="mx-auto flex h-20 w-20 items-center justify-center"
-                      whileHover={{ rotate: [0, -5, 5, 0], scale: 1.15 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <img src={f.image} alt={f.title} className="h-full w-full object-contain" />
-                    </motion.div>
-                    <h3 className="mt-5 font-bold text-foreground">{f.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
-                  </CardContent>
-                </Card>
+              <motion.div
+                whileHover={{ y: -4 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="group rounded-2xl border bg-card p-8 shadow-card transition-shadow hover:shadow-card-hover"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                  <f.icon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="mt-5 text-lg font-semibold text-foreground">{f.title}</h3>
+                <p className="mt-2 text-body-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </motion.div>
             </StaggerItem>
           ))}

@@ -1,40 +1,46 @@
-import { Search, Users, MessageCircle, CalendarCheck, MapPin } from "lucide-react";
+import { Search, Users, MessageCircle, CalendarCheck } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 const steps = [
-  { icon: Search, title: "Search Tutors", desc: "Enter your subject, location, and grade level to find nearby tutors." },
-  { icon: MapPin, title: "Find Nearby", desc: "Discover qualified tutors in your local area using location-based search." },
-  { icon: Users, title: "Compare Tutors", desc: "View profiles, ratings, experience, and reviews side by side." },
-  { icon: MessageCircle, title: "Contact Tutor", desc: "Message tutors directly through the platform." },
-  { icon: CalendarCheck, title: "Schedule Session", desc: "Arrange convenient offline tutoring sessions." },
+  { icon: Search, title: "Search", desc: "Enter your subject and location to find nearby qualified tutors." },
+  { icon: Users, title: "Compare", desc: "Review profiles, ratings, experience, and verified credentials." },
+  { icon: MessageCircle, title: "Connect", desc: "Message tutors directly to discuss your learning goals." },
+  { icon: CalendarCheck, title: "Learn", desc: "Book sessions and start personalized learning." },
 ];
 
 const HowItWorks = () => {
   return (
-    <section id="how-it-works" className="bg-muted/50 py-20">
+    <section id="how-it-works" className="py-24 md:py-32">
       <div className="container">
         <ScrollReveal>
-          <div className="text-center">
-            <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">How Tutor Quest Works</h2>
-            <p className="mt-3 text-muted-foreground">Get started in five simple steps</p>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">How It Works</p>
+            <h2 className="mt-3 text-display text-foreground">Get started in four simple steps</h2>
+            <p className="mt-4 text-body-lg text-muted-foreground">
+              From search to session — we make finding the right tutor effortless.
+            </p>
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" staggerDelay={0.15}>
+        <StaggerContainer className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
           {steps.map((s, i) => (
-            <StaggerItem key={s.title} variant="scaleIn">
+            <StaggerItem key={s.title}>
               <div className="relative text-center">
+                {/* Connector line */}
                 {i < steps.length - 1 && (
-                  <div className="absolute right-0 top-10 hidden h-0.5 w-full translate-x-1/2 bg-border lg:block" />
+                  <div className="absolute right-0 top-8 hidden h-px w-full translate-x-1/2 bg-border lg:block" />
                 )}
-                <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
-                  <s.icon className="h-9 w-9 text-primary" />
-                  <span className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+
+                {/* Icon */}
+                <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
+                  <s.icon className="h-7 w-7 text-primary" />
+                  <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
                     {i + 1}
                   </span>
                 </div>
-                <h3 className="mt-5 text-lg font-semibold text-foreground">{s.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+
+                <h3 className="mt-6 text-lg font-semibold text-foreground">{s.title}</h3>
+                <p className="mt-2 text-body-sm text-muted-foreground leading-relaxed">{s.desc}</p>
               </div>
             </StaggerItem>
           ))}
