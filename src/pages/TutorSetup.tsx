@@ -144,10 +144,13 @@ const TutorSetup = () => {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 5 MB", variant: "destructive" });
+    
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast({ title: "Invalid file", description: validation.error, variant: "destructive" });
       return;
     }
+    
     update("avatarFile", file);
     update("avatarPreview", URL.createObjectURL(file));
   };
