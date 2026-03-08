@@ -15,6 +15,7 @@ import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
 import { useDebounce } from "@/hooks/useDebounce";
+import { SEO } from "@/components/SEO";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -214,6 +215,11 @@ const FindTutors = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Find Tutors"
+        description="Search qualified tutors by subject, location, grade level, and more. Connect with verified local tutors for personalized learning."
+        url="/find-tutors"
+      />
       <div className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-lg">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold text-primary">

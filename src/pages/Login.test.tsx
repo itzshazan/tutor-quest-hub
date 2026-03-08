@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 
 // Mock modules
 vi.mock("@/integrations/supabase/client", () => ({
@@ -48,9 +49,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 const renderLogin = () => {
   return render(
-    <BrowserRouter>
-      <Login />
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <Login />
+      </BrowserRouter>
+    </HelmetProvider>
   );
 };
 

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { phoneSchema } from "@/lib/validations";
+import { SEO } from "@/components/SEO";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
@@ -126,6 +127,12 @@ const SignUp = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <SEO
+        title="Sign Up"
+        description="Create your Tutor Quest account. Join as a student to find local tutors, or as a tutor to start teaching and earning."
+        url="/signup"
+        noIndex
+      />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Link to="/" className="mx-auto mb-4 flex items-center gap-2 font-display text-xl font-bold text-primary">

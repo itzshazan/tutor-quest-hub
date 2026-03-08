@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
 import { GraduationCap, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
 
 const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Terms of Service"
+        description="Read the Tutor Quest Terms of Service. Understand your rights and responsibilities when using our tutoring platform."
+        url="/terms"
+      />
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container flex items-center justify-between py-4">

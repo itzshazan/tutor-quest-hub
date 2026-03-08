@@ -16,6 +16,7 @@ import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import ReviewSection from "@/components/ReviewSection";
+import { SEO, jsonLdGenerators } from "@/components/SEO";
 
 interface TutorData {
   full_name: string;
@@ -96,6 +97,19 @@ const TutorProfile = () => {
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
+      <SEO
+        title={tutor.full_name}
+        description={`${tutor.full_name} is a ${tutor.is_verified ? "verified " : ""}tutor specializing in ${tutor.subject}. ${tutor.experience_years} years experience. $${tutor.hourly_rate}/hr.`}
+        url={`/tutor/${id}`}
+        type="profile"
+        jsonLd={jsonLdGenerators.person({
+          name: tutor.full_name,
+          description: tutor.bio,
+          image: tutor.avatar_url || undefined,
+          jobTitle: `${tutor.subject} Tutor`,
+          url: `https://tutorquest.com/tutor/${id}`,
+        })}
+      />
       <div className="container max-w-3xl">
         <Link to="/" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Back to Home
