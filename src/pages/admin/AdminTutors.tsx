@@ -332,13 +332,31 @@ export default function AdminTutors() {
 
         <TabsContent value="verifications">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Verification Documents</CardTitle>
+              {selectedDocIds.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{selectedDocIds.size} selected</span>
+                  <Button size="sm" className="gap-1" onClick={() => bulkUpdateDocStatus("approved")}>
+                    <CheckCheck className="h-3 w-3" /> Bulk Approve
+                  </Button>
+                  <Button size="sm" variant="destructive" className="gap-1" onClick={() => bulkUpdateDocStatus("rejected")}>
+                    <XCircle className="h-3 w-3" /> Bulk Reject
+                  </Button>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={pendingDocs.length > 0 && pendingDocs.every((d) => selectedDocIds.has(d.id))}
+                        onCheckedChange={toggleAllPendingDocs}
+                        aria-label="Select all pending"
+                      />
+                    </TableHead>
                     <TableHead>Tutor</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
@@ -349,6 +367,15 @@ export default function AdminTutors() {
                 <TableBody>
                   {docs.map((d) => (
                     <TableRow key={d.id}>
+                      <TableCell>
+                        {d.status === "pending" && (
+                          <Checkbox
+                            checked={selectedDocIds.has(d.id)}
+                            onCheckedChange={() => toggleDocSelection(d.id)}
+                            aria-label={`Select ${d.document_type}`}
+                          />
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{d.tutor_name}</TableCell>
                       <TableCell>
                         <span className="flex items-center gap-1"><FileText className="h-3 w-3" /> {d.document_type}</span>
