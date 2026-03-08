@@ -112,6 +112,7 @@ const Navbar = () => {
           )}
           {user ? (
             <>
+              <NotificationBell />
               <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground">
                 <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"}>
                   <LayoutDashboard className="h-4 w-4" /> Dashboard
