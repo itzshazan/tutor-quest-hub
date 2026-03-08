@@ -107,8 +107,18 @@ const FindTutors = () => {
 
       let query = supabase
         .from("tutor_profiles")
-        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
+        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
         .order("rating", { ascending: false, nullsFirst: false });
+
+      // If day filter is set, get tutor IDs that are available on that day
+      let availableTutorIds: string[] | null = null;
+      if (dayFilter) {
+        const { data: availData } = await supabase
+          .from("tutor_availability")
+          .select("tutor_id")
+          .eq("day_of_week", dayFilter);
+        availableTutorIds = availData ? [...new Set(availData.map((a) => a.tutor_id))] : [];
+      }
 
       if (subjectFilter) {
         query = query.or(`subject.ilike.%${subjectFilter}%,subjects.cs.{${subjectFilter}}`);
