@@ -412,7 +412,7 @@ const Messages = () => {
               <div className="flex items-center gap-3 border-b px-4 py-3">
                 <Link
                   to="/messages"
-                  className="md:hidden text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground"
                   aria-label="Back to conversations"
                 >
                   <ArrowLeft className="h-5 w-5" />
