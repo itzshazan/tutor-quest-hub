@@ -50,14 +50,24 @@ interface SavedTutorRow {
   avatar_url: string | null;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pending Tutor Confirmation",
+  confirmed: "Payment Required",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  declined: "Declined",
+};
+
 const StudentDashboard = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [conversations, setConversations] = useState<ConvoRow[]>([]);
   const [savedTutors, setSavedTutors] = useState<SavedTutorRow[]>([]);
   const [stats, setStats] = useState({ total: 0, upcoming: 0, tutors: 0, reviews: 0 });
   const [loading, setLoading] = useState(true);
+  const [payingSessionId, setPayingSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
