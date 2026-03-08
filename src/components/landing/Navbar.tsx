@@ -35,7 +35,7 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between">
-        <a href="#home" className="flex items-center gap-2 font-display text-xl font-bold text-primary">
+        <a href="#home" className="flex items-center gap-2 text-xl font-extrabold text-primary">
           <GraduationCap className="h-7 w-7" />
           Tutor Quest
         </a>
@@ -68,7 +68,7 @@ const Navbar = () => {
                 <Link to="/sessions"><CalendarDays className="h-4 w-4" /> Sessions</Link>
               </Button>
               {incompleteProfile && (
-                <Button variant="outline" size="sm" asChild className="gap-1.5 border-accent text-accent-foreground">
+                <Button variant="outline" size="sm" asChild className="gap-1.5 border-primary text-primary">
                   <Link to="/tutor/setup"><UserCog className="h-4 w-4" /> Complete Profile</Link>
                 </Button>
               )}
@@ -79,7 +79,7 @@ const Navbar = () => {
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild><Link to="/login">Login</Link></Button>
-              <Button size="sm" asChild><Link to="/signup">Sign Up</Link></Button>
+              <Button size="sm" asChild><Link to="/signup">Get Started</Link></Button>
             </>
           )}
         </div>
@@ -122,7 +122,7 @@ const Navbar = () => {
                     </Link>
                   </Button>
                   {incompleteProfile && (
-                    <Button variant="outline" size="sm" className="gap-1.5 border-accent" asChild>
+                    <Button variant="outline" size="sm" className="gap-1.5 border-primary" asChild>
                       <Link to="/tutor/setup" onClick={() => setMobileOpen(false)}>
                         <UserCog className="h-4 w-4" /> Complete Profile
                       </Link>
@@ -135,7 +135,7 @@ const Navbar = () => {
               ) : (
                 <div className="flex gap-3">
                   <Button variant="outline" size="sm" className="flex-1" asChild><Link to="/login" onClick={() => setMobileOpen(false)}>Login</Link></Button>
-                  <Button size="sm" className="flex-1" asChild><Link to="/signup" onClick={() => setMobileOpen(false)}>Sign Up</Link></Button>
+                  <Button size="sm" className="flex-1" asChild><Link to="/signup" onClick={() => setMobileOpen(false)}>Get Started</Link></Button>
                 </div>
               )}
             </div>

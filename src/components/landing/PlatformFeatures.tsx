@@ -11,24 +11,25 @@ const features = [
 
 const PlatformFeatures = () => {
   return (
-    <section className="py-20">
+    <section className="py-24">
       <div className="container">
         <ScrollReveal>
           <div className="text-center">
-            <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Platform Features</h2>
-            <p className="mt-3 text-muted-foreground">Everything you need for a great tutoring experience</p>
+            <span className="text-sm font-semibold uppercase tracking-wider text-primary">Features</span>
+            <h2 className="mt-2 font-display text-3xl font-bold text-foreground md:text-4xl">Everything You Need</h2>
+            <p className="mt-3 text-muted-foreground">A complete platform for a great tutoring experience</p>
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
+        <StaggerContainer className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
           {features.map((f) => (
             <StaggerItem key={f.title}>
-              <Card className="border-0 bg-muted/40 shadow-none transition-colors hover:bg-muted/70">
-                <CardContent className="p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                    <f.icon className="h-6 w-6 text-primary" />
+              <Card className="border-0 shadow-neumorphic hover:shadow-elevated">
+                <CardContent className="p-8 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                    <f.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="mt-4 font-semibold text-foreground">{f.title}</h3>
+                  <h3 className="mt-5 font-bold text-foreground">{f.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
                 </CardContent>
               </Card>

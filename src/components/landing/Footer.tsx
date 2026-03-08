@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div>
-            <a href="#home" className="flex items-center gap-2 font-display text-lg font-bold text-primary">
+            <a href="#home" className="flex items-center gap-2 text-lg font-extrabold text-primary">
               <GraduationCap className="h-6 w-6" />
               Tutor Quest
             </a>
@@ -18,30 +18,30 @@ const Footer = () => {
 
           {/* Company */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground">Company</h4>
+            <h4 className="text-sm font-bold text-foreground">Company</h4>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground">About Tutor Quest</a></li>
-              <li><a href="#" className="hover:text-foreground">Contact</a></li>
-              <li><a href="#" className="hover:text-foreground">Careers</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">About Tutor Quest</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
             </ul>
           </div>
 
           {/* Resources */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground">Resources</h4>
+            <h4 className="text-sm font-bold text-foreground">Resources</h4>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground">Help Center</a></li>
-              <li><a href="#" className="hover:text-foreground">Safety Guidelines</a></li>
-              <li><a href="#" className="hover:text-foreground">Tutor Tips</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Safety Guidelines</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Tutor Tips</a></li>
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground">Legal</h4>
+            <h4 className="text-sm font-bold text-foreground">Legal</h4>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-foreground">Terms of Service</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
             </ul>
           </div>
         </div>
