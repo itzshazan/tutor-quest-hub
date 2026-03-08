@@ -146,9 +146,14 @@ const TutorDashboard = () => {
   return (
     <DashboardLayout role="tutor">
       <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Tutor Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user?.user_metadata?.full_name || "Tutor"}!</p>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Tutor Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back, {user?.user_metadata?.full_name || "Tutor"}!</p>
+          </div>
         </div>
 
         {/* Stats */}
