@@ -137,7 +137,7 @@ const Sessions = () => {
     if (!user || !tutorIdParam || !bookDate || !bookStart || !bookEnd || !bookSubject) return;
     setBooking(true);
 
-    const { error } = await supabase.from("sessions").insert({
+    const { data: inserted, error } = await supabase.from("sessions").insert({
       student_id: user.id,
       tutor_id: tutorIdParam,
       subject: bookSubject,
@@ -145,7 +145,7 @@ const Sessions = () => {
       start_time: bookStart,
       end_time: bookEnd,
       notes: bookNotes.trim(),
-    });
+    }).select("id").single();
 
     if (error) {
       toast({ title: "Booking failed", description: error.message, variant: "destructive" });
@@ -158,10 +158,9 @@ const Sessions = () => {
       setBookNotes("");
       await loadSessions();
       // Send notification (fire and forget)
-      const latestSession = sessions.find(s => s.tutor_id === tutorIdParam && s.status === "pending");
-      if (latestSession) {
+      if (inserted?.id) {
         supabase.functions.invoke("send-session-notification", {
-          body: { session_id: latestSession.id, event_type: "booked" },
+          body: { session_id: inserted.id, event_type: "booked" },
         }).catch(console.error);
       }
     }
