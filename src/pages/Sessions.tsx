@@ -251,7 +251,7 @@ const Sessions = () => {
                       mode="single"
                       selected={bookDate}
                       onSelect={setBookDate}
-                      disabled={(date) => isPast(startOfDay(date)) && !isToday(date)}
+                      disabled={(date) => isBefore(startOfDay(date), startOfDay(new Date()))}
                       initialFocus
                       className={cn("p-3 pointer-events-auto")}
                     />
