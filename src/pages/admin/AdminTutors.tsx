@@ -18,12 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import { exportToCSV } from "@/lib/exportUtils";
 import { format } from "date-fns";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface TutorRow {
   id: string;
