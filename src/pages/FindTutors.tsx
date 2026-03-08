@@ -179,6 +179,7 @@ const FindTutors = () => {
     if (ratingFilter !== "0") params.rating = ratingFilter;
     if (budgetFilter !== "0") params.budget = budgetFilter;
     if (gradeFilter) params.grade = gradeFilter;
+    if (dayFilter) params.day = dayFilter;
     setSearchParams(params);
   };
 
