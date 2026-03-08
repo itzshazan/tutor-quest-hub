@@ -421,6 +421,7 @@ export type Database = {
       }
       tutor_profiles: {
         Row: {
+          city: string | null
           created_at: string
           education: string | null
           experience_years: number | null
@@ -428,7 +429,9 @@ export type Database = {
           hourly_rate: number | null
           id: string
           is_verified: boolean | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           rating: number | null
           subject: string
           subjects: string[] | null
@@ -440,6 +443,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          city?: string | null
           created_at?: string
           education?: string | null
           experience_years?: number | null
@@ -447,7 +451,9 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_verified?: boolean | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           rating?: number | null
           subject?: string
           subjects?: string[] | null
@@ -459,6 +465,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          city?: string | null
           created_at?: string
           education?: string | null
           experience_years?: number | null
@@ -466,7 +473,9 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_verified?: boolean | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           rating?: number | null
           subject?: string
           subjects?: string[] | null
