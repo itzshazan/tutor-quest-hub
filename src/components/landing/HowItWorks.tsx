@@ -16,7 +16,7 @@ const HowItWorks = () => {
         <ScrollReveal>
           <div className="text-center">
             <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">How Tutor Quest Works</h2>
-            <p className="mt-3 text-muted-foreground">Get started in four simple steps</p>
+            <p className="mt-3 text-muted-foreground">Get started in five simple steps</p>
           </div>
         </ScrollReveal>
 
