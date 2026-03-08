@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
