@@ -11,20 +11,21 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="bg-muted/50 py-20">
+    <section className="py-24" style={{ background: "var(--hero-gradient)" }}>
       <div className="container">
         <ScrollReveal>
           <div className="text-center">
-            <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">What Our Users Say</h2>
+            <span className="text-sm font-semibold uppercase tracking-wider text-primary">Testimonials</span>
+            <h2 className="mt-2 font-display text-3xl font-bold text-foreground md:text-4xl">What Our Users Say</h2>
             <p className="mt-3 text-muted-foreground">Real stories from students, parents, and tutors</p>
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-12 grid gap-6 md:grid-cols-3" staggerDelay={0.15}>
+        <StaggerContainer className="mt-14 grid gap-6 md:grid-cols-3" staggerDelay={0.15}>
           {testimonials.map((t) => (
             <StaggerItem key={t.name}>
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
+              <Card className="border-0 shadow-neumorphic">
+                <CardContent className="p-8">
                   <Quote className="h-8 w-8 text-primary/20" />
                   <p className="mt-4 leading-relaxed text-foreground">{t.quote}</p>
                   <div className="mt-6 flex items-center gap-3">
