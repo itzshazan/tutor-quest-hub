@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   GraduationCap, Camera, ArrowRight, ArrowLeft, Check, BookOpen,
-  MapPin, Clock, Loader2, X, User, DollarSign, Pencil,
+  MapPin, Clock, Loader2, X, User, DollarSign, Pencil, Upload, FileText,
 } from "lucide-react";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -22,6 +22,11 @@ const TIME_SLOTS = [
   { label: "Morning (8–12)", start: "08:00", end: "12:00" },
   { label: "Afternoon (12–4)", start: "12:00", end: "16:00" },
   { label: "Evening (4–8)", start: "16:00", end: "20:00" },
+];
+
+const GRADE_LEVELS = [
+  "Grade 1-5", "Grade 6-8", "Grade 9-10", "Grade 11-12",
+  "Undergraduate", "Postgraduate", "Competitive Exams",
 ];
 
 interface FormData {
@@ -34,7 +39,10 @@ interface FormData {
   primarySubject: string;
   hourlyRate: number;
   location: string;
+  gradeLevels: string[];
   availability: { day: string; start: string; end: string }[];
+  verificationDocs: File[];
+  existingDocs: { id: string; document_type: string; status: string }[];
 }
 
 const initialForm: FormData = {
@@ -47,7 +55,10 @@ const initialForm: FormData = {
   primarySubject: "",
   hourlyRate: 0,
   location: "",
+  gradeLevels: [],
   availability: [],
+  verificationDocs: [],
+  existingDocs: [],
 };
 
 const TutorSetup = () => {
@@ -59,7 +70,6 @@ const TutorSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Load subjects + existing profile data
   useEffect(() => {
     const load = async () => {
       const { data: subs } = await supabase.from("subjects").select("id, name").order("name");
@@ -82,10 +92,10 @@ const TutorSetup = () => {
           primarySubject: tutor?.subject || "",
           hourlyRate: tutor?.hourly_rate || 0,
           location: tutor?.location || "",
+          gradeLevels: (tutor as any)?.grade_levels || [],
         }));
       }
 
-      // Load existing availability
       const { data: avail } = await supabase
         .from("tutor_availability")
         .select("day_of_week, start_time, end_time")
@@ -99,6 +109,15 @@ const TutorSetup = () => {
             end: (a.end_time as string).slice(0, 5),
           })),
         }));
+      }
+
+      // Load existing verification docs
+      const { data: docs } = await supabase
+        .from("tutor_verifications")
+        .select("id, document_type, status")
+        .eq("tutor_id", user.id);
+      if (docs) {
+        setForm((prev) => ({ ...prev, existingDocs: docs }));
       }
     };
     load();
@@ -118,6 +137,19 @@ const TutorSetup = () => {
     update("avatarPreview", URL.createObjectURL(file));
   };
 
+  const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const valid = files.filter((f) => f.size <= 10 * 1024 * 1024);
+    if (valid.length < files.length) {
+      toast({ title: "Some files skipped", description: "Max 10 MB per file", variant: "destructive" });
+    }
+    update("verificationDocs", [...form.verificationDocs, ...valid]);
+  };
+
+  const removeDoc = (index: number) => {
+    update("verificationDocs", form.verificationDocs.filter((_, i) => i !== index));
+  };
+
   const toggleSubject = (name: string) => {
     const next = form.subjects.includes(name)
       ? form.subjects.filter((s) => s !== name)
@@ -125,6 +157,13 @@ const TutorSetup = () => {
     update("subjects", next);
     if (form.primarySubject === name) update("primarySubject", next[0] || "");
     else if (!next.includes(form.primarySubject)) update("primarySubject", next[0] || "");
+  };
+
+  const toggleGradeLevel = (level: string) => {
+    const next = form.gradeLevels.includes(level)
+      ? form.gradeLevels.filter((g) => g !== level)
+      : [...form.gradeLevels, level];
+    update("gradeLevels", next);
   };
 
   const toggleAvailability = (day: string, start: string, end: string) => {
@@ -150,7 +189,6 @@ const TutorSetup = () => {
     try {
       let avatarUrl = form.avatarPreview;
 
-      // Upload avatar if new file
       if (form.avatarFile) {
         const ext = form.avatarFile.name.split(".").pop();
         const path = `${user.id}/avatar.${ext}`;
@@ -162,14 +200,28 @@ const TutorSetup = () => {
         avatarUrl = urlData.publicUrl;
       }
 
-      // Update profiles table
+      // Upload verification documents
+      for (const doc of form.verificationDocs) {
+        const docPath = `${user.id}/${Date.now()}-${doc.name}`;
+        const { error: docErr } = await supabase.storage
+          .from("tutor-documents")
+          .upload(docPath, doc);
+        if (docErr) throw docErr;
+
+        const { error: insertErr } = await supabase.from("tutor_verifications").insert({
+          tutor_id: user.id,
+          document_type: doc.name.split(".").pop()?.toUpperCase() || "FILE",
+          file_url: docPath,
+        });
+        if (insertErr) throw insertErr;
+      }
+
       const { error: profErr } = await supabase
         .from("profiles")
         .update({ bio: form.bio, avatar_url: avatarUrl || null })
         .eq("user_id", user.id);
       if (profErr) throw profErr;
 
-      // Update tutor_profiles table
       const { error: tutorErr } = await supabase
         .from("tutor_profiles")
         .update({
@@ -179,11 +231,24 @@ const TutorSetup = () => {
           subject: form.primarySubject || form.subjects[0] || "",
           hourly_rate: form.hourlyRate,
           location: form.location,
-        })
+          grade_levels: form.gradeLevels,
+        } as any)
         .eq("user_id", user.id);
       if (tutorErr) throw tutorErr;
 
-      // Replace availability
+      // Capture geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          await supabase
+            .from("profiles")
+            .update({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+            } as any)
+            .eq("user_id", user.id);
+        }, () => {});
+      }
+
       await supabase.from("tutor_availability").delete().eq("tutor_id", user.id);
       if (form.availability.length > 0) {
         const { error: availErr } = await supabase.from("tutor_availability").insert(
@@ -210,7 +275,6 @@ const TutorSetup = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="border-b bg-card">
         <div className="container flex h-16 items-center gap-3">
           <GraduationCap className="h-7 w-7 text-primary" />
@@ -263,7 +327,6 @@ const TutorSetup = () => {
               <CardDescription>Tell students about yourself</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Avatar */}
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <Avatar className="h-20 w-20">
@@ -278,13 +341,7 @@ const TutorSetup = () => {
                   >
                     <Camera className="h-3.5 w-3.5" />
                   </label>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarChange}
-                  />
+                  <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Profile Photo</p>
@@ -308,24 +365,49 @@ const TutorSetup = () => {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="education">Education</Label>
-                  <Input
-                    id="education"
-                    placeholder="e.g. B.Sc. Mathematics"
-                    value={form.education}
-                    onChange={(e) => update("education", e.target.value)}
-                  />
+                  <Input id="education" placeholder="e.g. B.Sc. Mathematics" value={form.education} onChange={(e) => update("education", e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="experience">Years of Experience</Label>
-                  <Input
-                    id="experience"
-                    type="number"
-                    min={0}
-                    max={50}
-                    value={form.experienceYears || ""}
-                    onChange={(e) => update("experienceYears", parseInt(e.target.value) || 0)}
-                  />
+                  <Input id="experience" type="number" min={0} max={50} value={form.experienceYears || ""} onChange={(e) => update("experienceYears", parseInt(e.target.value) || 0)} />
                 </div>
+              </div>
+
+              {/* Verification Documents */}
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" /> Verification Documents
+                </Label>
+                <p className="text-xs text-muted-foreground">Upload ID proof, certificates, or qualifications for admin verification</p>
+                
+                {form.existingDocs.length > 0 && (
+                  <div className="space-y-1.5">
+                    {form.existingDocs.map((doc) => (
+                      <div key={doc.id} className="flex items-center gap-2 text-sm rounded-md border p-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span>{doc.document_type}</span>
+                        <Badge variant={doc.status === "approved" ? "default" : doc.status === "rejected" ? "destructive" : "secondary"} className="text-xs ml-auto">
+                          {doc.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {form.verificationDocs.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm rounded-md border p-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="truncate flex-1">{doc.name}</span>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeDoc(i)}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+
+                <label htmlFor="doc-upload" className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed p-3 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                  <Upload className="h-4 w-4" /> Upload document (PDF, JPG, PNG — max 10 MB)
+                </label>
+                <input id="doc-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" multiple onChange={handleDocUpload} />
               </div>
             </CardContent>
           </Card>
@@ -338,7 +420,7 @@ const TutorSetup = () => {
               <CardTitle className="flex items-center gap-2 font-display">
                 <BookOpen className="h-5 w-5 text-primary" /> Teaching Information
               </CardTitle>
-              <CardDescription>Select your subjects and set your rate</CardDescription>
+              <CardDescription>Select your subjects, grade levels, and set your rate</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -351,9 +433,7 @@ const TutorSetup = () => {
                         key={s.id}
                         variant={selected ? "default" : "outline"}
                         className={`cursor-pointer transition-all ${
-                          selected
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                            : "hover:bg-muted"
+                          selected ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-muted"
                         }`}
                         onClick={() => toggleSubject(s.name)}
                       >
@@ -373,11 +453,7 @@ const TutorSetup = () => {
                       <Badge
                         key={s}
                         variant={form.primarySubject === s ? "default" : "outline"}
-                        className={`cursor-pointer ${
-                          form.primarySubject === s
-                            ? "bg-secondary text-secondary-foreground"
-                            : "hover:bg-muted"
-                        }`}
+                        className={`cursor-pointer ${form.primarySubject === s ? "bg-secondary text-secondary-foreground" : "hover:bg-muted"}`}
                         onClick={() => update("primarySubject", s)}
                       >
                         {s}
@@ -387,19 +463,34 @@ const TutorSetup = () => {
                 </div>
               )}
 
+              {/* Grade Levels */}
+              <div className="space-y-2">
+                <Label>Grade Levels You Teach</Label>
+                <div className="flex flex-wrap gap-2">
+                  {GRADE_LEVELS.map((level) => {
+                    const selected = form.gradeLevels.includes(level);
+                    return (
+                      <Badge
+                        key={level}
+                        variant={selected ? "default" : "outline"}
+                        className={`cursor-pointer transition-all ${
+                          selected ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-muted"
+                        }`}
+                        onClick={() => toggleGradeLevel(level)}
+                      >
+                        {level}
+                        {selected && <X className="ml-1 h-3 w-3" />}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="rate">Hourly Rate (₹) *</Label>
                 <div className="relative max-w-xs">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="rate"
-                    type="number"
-                    min={0}
-                    className="pl-9"
-                    placeholder="500"
-                    value={form.hourlyRate || ""}
-                    onChange={(e) => update("hourlyRate", parseInt(e.target.value) || 0)}
-                  />
+                  <Input id="rate" type="number" min={0} className="pl-9" placeholder="500" value={form.hourlyRate || ""} onChange={(e) => update("hourlyRate", parseInt(e.target.value) || 0)} />
                 </div>
               </div>
             </CardContent>
@@ -418,12 +509,8 @@ const TutorSetup = () => {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="location">City / Area *</Label>
-                <Input
-                  id="location"
-                  placeholder="e.g. Mumbai, Andheri West"
-                  value={form.location}
-                  onChange={(e) => update("location", e.target.value)}
-                />
+                <Input id="location" placeholder="e.g. Mumbai, Andheri West" value={form.location} onChange={(e) => update("location", e.target.value)} />
+                <p className="text-xs text-muted-foreground">Your browser location will also be captured for distance-based search.</p>
               </div>
 
               <div className="space-y-3">
@@ -434,24 +521,17 @@ const TutorSetup = () => {
                   <div className="grid grid-cols-[1fr_repeat(3,1fr)] text-xs font-medium bg-muted">
                     <div className="p-2" />
                     {TIME_SLOTS.map((t) => (
-                      <div key={t.label} className="p-2 text-center text-muted-foreground">
-                        {t.label}
-                      </div>
+                      <div key={t.label} className="p-2 text-center text-muted-foreground">{t.label}</div>
                     ))}
                   </div>
                   {DAYS.map((day) => (
                     <div key={day} className="grid grid-cols-[1fr_repeat(3,1fr)] border-t">
                       <div className="p-2 text-sm font-medium">{day}</div>
                       {TIME_SLOTS.map((slot) => {
-                        const active = form.availability.some(
-                          (a) => a.day === day && a.start === slot.start
-                        );
+                        const active = form.availability.some((a) => a.day === day && a.start === slot.start);
                         return (
                           <div key={slot.start} className="flex items-center justify-center p-2">
-                            <Checkbox
-                              checked={active}
-                              onCheckedChange={() => toggleAvailability(day, slot.start, slot.end)}
-                            />
+                            <Checkbox checked={active} onCheckedChange={() => toggleAvailability(day, slot.start, slot.end)} />
                           </div>
                         );
                       })}
@@ -473,7 +553,6 @@ const TutorSetup = () => {
               <CardDescription>Make sure everything looks good before publishing</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Summary sections */}
               <SummarySection title="Basic Info" onEdit={() => setStep(1)}>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
@@ -487,16 +566,26 @@ const TutorSetup = () => {
                 </div>
                 <p className="text-sm mt-2">{form.bio}</p>
                 <p className="text-xs text-muted-foreground">{form.experienceYears} years experience</p>
+                {(form.verificationDocs.length > 0 || form.existingDocs.length > 0) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {form.existingDocs.length + form.verificationDocs.length} verification document(s) uploaded
+                  </p>
+                )}
               </SummarySection>
 
               <SummarySection title="Teaching" onEdit={() => setStep(2)}>
                 <div className="flex flex-wrap gap-1.5">
                   {form.subjects.map((s) => (
-                    <Badge key={s} variant={s === form.primarySubject ? "default" : "secondary"} className="text-xs">
-                      {s}
-                    </Badge>
+                    <Badge key={s} variant={s === form.primarySubject ? "default" : "secondary"} className="text-xs">{s}</Badge>
                   ))}
                 </div>
+                {form.gradeLevels.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {form.gradeLevels.map((g) => (
+                      <Badge key={g} variant="outline" className="text-xs">{g}</Badge>
+                    ))}
+                  </div>
+                )}
                 <p className="text-sm mt-2">₹{form.hourlyRate}/hr</p>
               </SummarySection>
 
@@ -506,9 +595,7 @@ const TutorSetup = () => {
                 </p>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {form.availability.map((a, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">
-                      {a.day.slice(0, 3)} {a.start}–{a.end}
-                    </Badge>
+                    <Badge key={i} variant="outline" className="text-xs">{a.day.slice(0, 3)} {a.start}–{a.end}</Badge>
                   ))}
                 </div>
               </SummarySection>

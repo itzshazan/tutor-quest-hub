@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GraduationCap, Eye, EyeOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { GraduationCap, Eye, EyeOff, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +17,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<"student" | "tutor">("student");
   const [subject, setSubject] = useState("");
+  const [preferredSubjects, setPreferredSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -29,6 +31,12 @@ const SignUp = () => {
     fetchSubjects();
   }, []);
 
+  const togglePreferredSubject = (name: string) => {
+    setPreferredSubjects((prev) =>
+      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+    );
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim() || !password.trim()) return;
@@ -38,7 +46,7 @@ const SignUp = () => {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
@@ -54,6 +62,31 @@ const SignUp = () => {
     if (error) {
       toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
     } else {
+      // Save preferred subjects and geolocation for students
+      if (role === "student" && signUpData.user) {
+        // We'll update after profile is created by trigger
+        setTimeout(async () => {
+          if (preferredSubjects.length > 0) {
+            await supabase
+              .from("profiles")
+              .update({ preferred_subjects: preferredSubjects } as any)
+              .eq("user_id", signUpData.user!.id);
+          }
+          // Capture geolocation
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+              await supabase
+                .from("profiles")
+                .update({
+                  latitude: pos.coords.latitude,
+                  longitude: pos.coords.longitude,
+                } as any)
+                .eq("user_id", signUpData.user!.id);
+            }, () => {});
+          }
+        }, 2000);
+      }
+
       toast({ title: "Account created!", description: "Please check your email to confirm your account." });
       navigate("/login");
     }
@@ -73,7 +106,6 @@ const SignUp = () => {
         </CardHeader>
         <form onSubmit={handleSignUp}>
           <CardContent className="space-y-4">
-            {/* Role toggle */}
             <div className="flex rounded-lg border p-1">
               <button
                 type="button"
@@ -122,6 +154,30 @@ const SignUp = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {role === "student" && (
+              <div className="space-y-2">
+                <Label>Preferred Subjects (optional)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {subjectsList.map((s) => {
+                    const selected = preferredSubjects.includes(s);
+                    return (
+                      <Badge
+                        key={s}
+                        variant={selected ? "default" : "outline"}
+                        className={`cursor-pointer text-xs transition-all ${
+                          selected ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-muted"
+                        }`}
+                        onClick={() => togglePreferredSubject(s)}
+                      >
+                        {s}
+                        {selected && <X className="ml-1 h-3 w-3" />}
+                      </Badge>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </CardContent>

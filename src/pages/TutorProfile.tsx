@@ -15,6 +15,8 @@ interface TutorData {
   avatar_url: string | null;
   bio: string;
   subject: string;
+  subjects: string[] | null;
+  grade_levels: string[] | null;
   experience_years: number;
   hourly_rate: number;
   location: string;
@@ -44,14 +46,14 @@ const TutorProfile = () => {
 
       const { data: tutorProfile } = await supabase
         .from("tutor_profiles")
-        .select("subject, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews")
+        .select("subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels")
         .eq("user_id", id)
         .single();
 
       if (!profile || !tutorProfile) {
         setNotFound(true);
       } else {
-        setTutor({ ...profile, ...tutorProfile });
+        setTutor({ ...profile, ...tutorProfile } as any);
       }
       setLoading(false);
     };
@@ -90,7 +92,6 @@ const TutorProfile = () => {
         </Link>
 
         <Card className="overflow-hidden">
-          {/* Header */}
           <div className="bg-primary/5 px-8 py-10">
             <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
               <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
@@ -120,7 +121,6 @@ const TutorProfile = () => {
           </div>
 
           <CardContent className="space-y-8 p-8">
-            {/* Rate & CTA */}
             <div className="flex flex-col items-center gap-4 rounded-xl border bg-muted/30 p-6 sm:flex-row sm:justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Hourly Rate</p>
@@ -151,7 +151,6 @@ const TutorProfile = () => {
               </div>
             </div>
 
-            {/* Bio */}
             {tutor.bio && (
               <div>
                 <h2 className="font-display text-lg font-semibold text-foreground">About</h2>
@@ -159,14 +158,15 @@ const TutorProfile = () => {
               </div>
             )}
 
-            {/* Details */}
             <div className="grid gap-4 sm:grid-cols-2">
               {tutor.subject && (
                 <div className="flex items-start gap-3 rounded-lg border p-4">
                   <BookOpen className="mt-0.5 h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">Subject</p>
-                    <p className="text-sm text-muted-foreground">{tutor.subject}</p>
+                    <p className="text-sm font-medium text-foreground">Subjects</p>
+                    <p className="text-sm text-muted-foreground">
+                      {tutor.subjects && tutor.subjects.length > 0 ? tutor.subjects.join(", ") : tutor.subject}
+                    </p>
                   </div>
                 </div>
               )}
@@ -181,7 +181,18 @@ const TutorProfile = () => {
               )}
             </div>
 
-            {/* Reviews */}
+            {/* Grade Levels */}
+            {tutor.grade_levels && tutor.grade_levels.length > 0 && (
+              <div>
+                <h2 className="font-display text-lg font-semibold text-foreground mb-3">Grade Levels</h2>
+                <div className="flex flex-wrap gap-2">
+                  {tutor.grade_levels.map((g) => (
+                    <Badge key={g} variant="outline">{g}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <ReviewSection tutorId={id!} />
           </CardContent>
         </Card>
