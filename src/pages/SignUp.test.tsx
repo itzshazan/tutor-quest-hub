@@ -10,6 +10,9 @@ vi.mock("@/integrations/supabase/client", () => ({
     },
     from: vi.fn(() => ({
       insert: vi.fn(() => Promise.resolve({ error: null })),
+      select: vi.fn(() => ({
+        order: vi.fn(() => Promise.resolve({ data: [{ name: "Math" }, { name: "Science" }], error: null })),
+      })),
     })),
   },
 }));
