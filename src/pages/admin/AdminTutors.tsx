@@ -266,6 +266,12 @@ export default function AdminTutors() {
 
         <TabsContent value="tutors">
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between py-3">
+              <CardTitle className="text-lg">All Tutors</CardTitle>
+              <Button variant="outline" size="sm" onClick={handleExportTutors} className="gap-1.5">
+                <Download className="h-4 w-4" /> Export
+              </Button>
+            </CardHeader>
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex justify-center py-12">
