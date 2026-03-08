@@ -197,6 +197,15 @@ const FindTutors = () => {
           results = results.filter((t) => availableTutorIds!.includes(t.user_id));
         }
 
+        // Client-side text-based location filter when no geocoded coordinates
+        if (debouncedLocation && !searchCoords) {
+          const locLower = debouncedLocation.toLowerCase();
+          results = results.filter((t) =>
+            (t.location && t.location.toLowerCase().includes(locLower)) ||
+            (t.city && t.city.toLowerCase().includes(locLower))
+          );
+        }
+
         // Calculate distances & filter by radius when we have search coordinates
         const radiusKm = parseFloat(radiusFilter);
         if (searchCoords) {
