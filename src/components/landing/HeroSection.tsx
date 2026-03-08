@@ -1,10 +1,31 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, BookOpen } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, MapPin, BookOpen, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
+const GRADE_LEVELS = [
+  "Grade 1-5", "Grade 6-8", "Grade 9-10", "Grade 11-12",
+  "Undergraduate", "Postgraduate", "Competitive Exams",
+];
+
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const [subject, setSubject] = useState("");
+  const [location, setLocation] = useState("");
+  const [grade, setGrade] = useState("");
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (subject.trim()) params.set("subject", subject.trim());
+    if (location.trim()) params.set("location", location.trim());
+    if (grade) params.set("grade", grade);
+    navigate(`/find-tutors?${params.toString()}`);
+  };
+
   return (
     <section id="home" className="relative overflow-hidden py-20 md:py-32" style={{ background: "var(--hero-gradient)" }}>
       <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
@@ -34,17 +55,30 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mx-auto mt-10 flex max-w-2xl flex-col gap-3 rounded-2xl border bg-card p-3 shadow-lg sm:flex-row sm:items-center"
+            className="mx-auto mt-10 flex max-w-3xl flex-col gap-3 rounded-2xl border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:flex-wrap"
           >
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-[140px]">
               <BookOpen className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Subject (e.g. Mathematics)" className="border-0 pl-10 shadow-none focus-visible:ring-0" />
+              <Input placeholder="Subject (e.g. Mathematics)" className="border-0 pl-10 shadow-none focus-visible:ring-0" value={subject} onChange={(e) => setSubject(e.target.value)} />
             </div>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-[140px]">
               <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Location (e.g. Delhi)" className="border-0 pl-10 shadow-none focus-visible:ring-0" />
+              <Input placeholder="Location (e.g. Delhi)" className="border-0 pl-10 shadow-none focus-visible:ring-0" value={location} onChange={(e) => setLocation(e.target.value)} />
             </div>
-            <Button className="gap-2 px-6">
+            <div className="flex-1 min-w-[140px]">
+              <Select value={grade} onValueChange={setGrade}>
+                <SelectTrigger className="border-0 shadow-none focus:ring-0">
+                  <GraduationCap className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Grade Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GRADE_LEVELS.map((g) => (
+                    <SelectItem key={g} value={g}>{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button className="gap-2 px-6" onClick={handleSearch}>
               <Search className="h-4 w-4" />
               Find Tutors
             </Button>

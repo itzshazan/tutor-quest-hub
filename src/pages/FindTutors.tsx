@@ -189,11 +189,12 @@ const FindTutors = () => {
     setRatingFilter("0");
     setBudgetFilter("0");
     setGradeFilter("");
+    setDayFilter("");
     setSortByDistance(false);
     setSearchParams({});
   };
 
-  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0" || gradeFilter || sortByDistance;
+  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0" || gradeFilter || dayFilter || sortByDistance;
 
   return (
     <div className="min-h-screen bg-background">
