@@ -31,7 +31,7 @@ const Login = () => {
       if (loggedUser?.user_metadata?.role === "tutor") {
         const { data: tp } = await supabase
           .from("tutor_profiles")
-          .select("bio:profiles!inner(bio), hourly_rate")
+          .select("hourly_rate")
           .eq("user_id", loggedUser.id)
           .single();
         // Redirect if profile is incomplete
