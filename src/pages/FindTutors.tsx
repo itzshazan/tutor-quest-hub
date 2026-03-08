@@ -370,44 +370,6 @@ const FindTutors = () => {
           </div>
         </ScrollReveal>
 
-        {showFilters && (
-          <div className="mb-6 flex gap-3 sm:hidden">
-            <div className="flex-1 space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Budget</label>
-              <Select value={budgetFilter} onValueChange={setBudgetFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {budgetOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1 space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Rating</label>
-              <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {ratingOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1 space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">Availability</label>
-              <Select value={dayFilter} onValueChange={setDayFilter}>
-                <SelectTrigger><SelectValue placeholder="Any Day" /></SelectTrigger>
-                <SelectContent>
-                  {DAYS_OF_WEEK.map((d) => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-
         {sortByDistance && userLocation && (
           <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
             <Navigation className="h-4 w-4 text-primary" />
