@@ -92,16 +92,25 @@ const Navbar = () => {
                 </a>
               )
             )}
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-col gap-3 pt-2">
               {user ? (
-                <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => { signOut(); setMobileOpen(false); }}>
-                  <LogOut className="h-4 w-4" /> Sign Out
-                </Button>
-              ) : (
                 <>
+                  {incompleteProfile && (
+                    <Button variant="outline" size="sm" className="gap-1.5 border-accent" asChild>
+                      <Link to="/tutor/setup" onClick={() => setMobileOpen(false)}>
+                        <UserCog className="h-4 w-4" /> Complete Profile
+                      </Link>
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { signOut(); setMobileOpen(false); }}>
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </Button>
+                </>
+              ) : (
+                <div className="flex gap-3">
                   <Button variant="outline" size="sm" className="flex-1" asChild><Link to="/login" onClick={() => setMobileOpen(false)}>Login</Link></Button>
                   <Button size="sm" className="flex-1" asChild><Link to="/signup" onClick={() => setMobileOpen(false)}>Sign Up</Link></Button>
-                </>
+                </div>
               )}
             </div>
           </div>
