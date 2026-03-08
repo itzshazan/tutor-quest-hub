@@ -106,6 +106,11 @@ const Navbar = () => {
                       <MessageSquare className="h-4 w-4" /> Messages
                     </Link>
                   </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <Link to="/sessions" onClick={() => setMobileOpen(false)}>
+                      <CalendarDays className="h-4 w-4" /> Sessions
+                    </Link>
+                  </Button>
                   {incompleteProfile && (
                     <Button variant="outline" size="sm" className="gap-1.5 border-accent" asChild>
                       <Link to="/tutor/setup" onClick={() => setMobileOpen(false)}>
