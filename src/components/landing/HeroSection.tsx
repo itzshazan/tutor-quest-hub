@@ -2,14 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, BookOpen, GraduationCap, ArrowRight, CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
-
-const GRADE_LEVELS = [
-  "Grade 1-5", "Grade 6-8", "Grade 9-10", "Grade 11-12",
-  "Undergraduate", "Postgraduate", "Competitive Exams",
-];
+import { Search, MapPin, BookOpen, ArrowRight, CheckCircle2 } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 const TRUST_ITEMS = [
   "10,000+ students",
@@ -21,28 +16,40 @@ const HeroSection = () => {
   const navigate = useNavigate();
   const [subject, setSubject] = useState("");
   const [location, setLocation] = useState("");
-  const [grade, setGrade] = useState("");
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const textY = useTransform(scrollYProgress, [0, 1], ["0px", "-40px"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (subject.trim()) params.set("subject", subject.trim());
     if (location.trim()) params.set("location", location.trim());
-    if (grade) params.set("grade", grade);
     navigate(`/find-tutors?${params.toString()}`);
   };
 
   return (
-    <section id="home" className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24">
-      {/* Subtle background gradient */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-secondary/50 via-background to-background" />
+    <section ref={sectionRef} id="home" className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24">
+      {/* Parallax background */}
+      <motion.div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-secondary/50 via-background to-background"
+        style={{ y: bgY }}
+      />
 
       <div className="container relative">
-        <div className="mx-auto max-w-3xl text-center">
+        <motion.div className="mx-auto max-w-3xl text-center" style={{ y: textY, opacity }}>
           {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            initial={{ opacity: 0, y: 16, rotateX: 20 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ perspective: 800 }}
           >
             <span className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-body-sm font-medium text-muted-foreground shadow-soft">
               <span className="h-2 w-2 rounded-full bg-accent" />
@@ -52,9 +59,9 @@ const HeroSection = () => {
 
           {/* Heading */}
           <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
             className="mt-8 text-display-lg text-foreground md:text-[3.5rem]"
           >
             Find the perfect tutor,{" "}
@@ -74,14 +81,15 @@ const HeroSection = () => {
             Search by subject, location, and schedule.
           </motion.p>
 
-          {/* Search Bar */}
+          {/* Search Bar - 3D entrance */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
+            initial={{ opacity: 0, y: 30, rotateX: 15 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 0.6, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
             className="mx-auto mt-10 max-w-2xl"
+            style={{ perspective: 1000 }}
           >
-            <div className="flex flex-col gap-2 rounded-2xl border bg-card p-2 shadow-card sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2 rounded-2xl border bg-card p-2 shadow-card sm:flex-row sm:items-center transition-shadow duration-300 hover:shadow-card-hover">
               <div className="relative flex-1">
                 <BookOpen className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -110,8 +118,8 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
             className="mt-8 flex flex-wrap items-center justify-center gap-4"
           >
@@ -139,7 +147,7 @@ const HeroSection = () => {
               </div>
             ))}
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

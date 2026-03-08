@@ -1,17 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { ScrollReveal } from "./ScrollReveal";
+import { ScrollReveal, ParallaxSection } from "./ScrollReveal";
 import { Link } from "react-router-dom";
 
 const TutorCTA = () => {
   return (
     <section id="become-tutor" className="py-24 md:py-32">
       <div className="container">
-        <ScrollReveal variant="scaleIn">
+        <ScrollReveal variant="zoomRotate" duration={0.7}>
           <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-20 text-center md:px-16">
-            {/* Decorative elements */}
-            <div className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+            {/* Parallax decorative elements */}
+            <ParallaxSection speed={0.25} className="pointer-events-none absolute -left-24 -top-24">
+              <div className="h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+            </ParallaxSection>
+            <ParallaxSection speed={0.35} className="pointer-events-none absolute -bottom-24 -right-24">
+              <div className="h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+            </ParallaxSection>
 
             <div className="relative mx-auto max-w-2xl">
               <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">
