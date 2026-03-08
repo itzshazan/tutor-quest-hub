@@ -157,6 +157,13 @@ const Sessions = () => {
       setBookEnd("");
       setBookNotes("");
       await loadSessions();
+      // Send notification (fire and forget)
+      const latestSession = sessions.find(s => s.tutor_id === tutorIdParam && s.status === "pending");
+      if (latestSession) {
+        supabase.functions.invoke("send-session-notification", {
+          body: { session_id: latestSession.id, event_type: "booked" },
+        }).catch(console.error);
+      }
     }
     setBooking(false);
   };
