@@ -159,12 +159,25 @@ const TutorSetup = () => {
 
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const valid = files.filter((f) => f.size <= 10 * 1024 * 1024);
-    if (valid.length < files.length) {
-      toast({ title: "Some files skipped", description: "Max 10 MB per file", variant: "destructive" });
+    const validDocs: VerificationDoc[] = [];
+    const errors: string[] = [];
+    
+    for (const file of files) {
+      const validation = validateDocumentFile(file);
+      if (validation.valid) {
+        validDocs.push({ file, category: docCategory });
+      } else {
+        errors.push(`${file.name}: ${validation.error}`);
+      }
     }
-    const newDocs: VerificationDoc[] = valid.map((f) => ({ file: f, category: docCategory }));
-    update("verificationDocs", [...form.verificationDocs, ...newDocs]);
+    
+    if (errors.length > 0) {
+      toast({ title: "Some files skipped", description: errors.join(", "), variant: "destructive" });
+    }
+    
+    if (validDocs.length > 0) {
+      update("verificationDocs", [...form.verificationDocs, ...validDocs]);
+    }
   };
 
   const removeDoc = (index: number) => {
