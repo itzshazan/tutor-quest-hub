@@ -259,6 +259,7 @@ export type Database = {
           teaching_method: string
           teaching_radius: number | null
           total_reviews: number | null
+          trust_score: number | null
           updated_at: string
           user_id: string
         }
@@ -277,6 +278,7 @@ export type Database = {
           teaching_method?: string
           teaching_radius?: number | null
           total_reviews?: number | null
+          trust_score?: number | null
           updated_at?: string
           user_id: string
         }
@@ -295,8 +297,45 @@ export type Database = {
           teaching_method?: string
           teaching_radius?: number | null
           total_reviews?: number | null
+          trust_score?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tutor_reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string | null
+          id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          status: string
+          tutor_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          status?: string
+          tutor_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          status?: string
+          tutor_id?: string
         }
         Relationships: []
       }
@@ -353,6 +392,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_trust_score: { Args: { _tutor_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
