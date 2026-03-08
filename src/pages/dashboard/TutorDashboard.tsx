@@ -223,8 +223,8 @@ const TutorDashboard = () => {
               ) : pending.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No pending requests.</p>
               ) : (
-                pending.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
+                 pending.map((s) => (
+                  <div key={s.id} className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <p className="font-medium text-foreground">{s.subject}</p>
                       <p className="text-sm text-muted-foreground">{s.student_name}</p>
@@ -232,7 +232,7 @@ const TutorDashboard = () => {
                         {format(new Date(s.session_date), "MMM d, yyyy")} · {s.start_time.slice(0, 5)}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 self-start sm:self-center">
                       <Button size="sm" variant="outline" className="text-secondary" onClick={() => handleAction(s.id, "confirmed")}>
                         <CheckCircle className="mr-1 h-3.5 w-3.5" /> Accept
                       </Button>
@@ -257,8 +257,8 @@ const TutorDashboard = () => {
               ) : upcoming.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No upcoming sessions.</p>
               ) : (
-                upcoming.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
+                 upcoming.map((s) => (
+                  <div key={s.id} className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <p className="font-medium text-foreground">{s.subject}</p>
                       <p className="text-sm text-muted-foreground">{s.student_name}</p>
@@ -266,7 +266,7 @@ const TutorDashboard = () => {
                         {format(new Date(s.session_date), "MMM d, yyyy")} · {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
                       </p>
                     </div>
-                    <Badge className="bg-secondary/20 text-secondary">confirmed</Badge>
+                    <Badge className="self-start bg-secondary/20 text-secondary sm:self-center">confirmed</Badge>
                   </div>
                 ))
               )}
