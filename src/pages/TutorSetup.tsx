@@ -30,9 +30,11 @@ const GRADE_LEVELS = [
   "Undergraduate", "Postgraduate", "Competitive Exams",
 ];
 
+type DocCategory = "id_proof" | "bachelor_degree" | "masters_degree" | "phd_certificate" | "teaching_certificate" | "experience";
+
 interface VerificationDoc {
   file: File;
-  category: "id_proof" | "education" | "experience";
+  category: DocCategory;
 }
 
 interface FormData {
@@ -149,7 +151,7 @@ const TutorSetup = () => {
     update("avatarPreview", URL.createObjectURL(file));
   };
 
-  const [docCategory, setDocCategory] = useState<"id_proof" | "education" | "experience">("id_proof");
+  const [docCategory, setDocCategory] = useState<DocCategory>("id_proof");
 
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -225,7 +227,10 @@ const TutorSetup = () => {
 
         const categoryLabels: Record<string, string> = {
           id_proof: "ID Proof",
-          education: "Education Certificate",
+          bachelor_degree: "Bachelor's Degree",
+          masters_degree: "Master's Degree",
+          phd_certificate: "PhD Certificate",
+          teaching_certificate: "Teaching Certificate",
           experience: "Experience Proof",
         };
 
@@ -420,7 +425,10 @@ const TutorSetup = () => {
                 {form.verificationDocs.map((doc, i) => {
                   const categoryLabels: Record<string, string> = {
                     id_proof: "🪪 ID Proof",
-                    education: "🎓 Education",
+                    bachelor_degree: "🎓 Bachelor's Degree",
+                    masters_degree: "🎓 Master's Degree",
+                    phd_certificate: "🎓 PhD Certificate",
+                    teaching_certificate: "📜 Teaching Certificate",
                     experience: "💼 Experience",
                   };
                   return (
@@ -444,7 +452,10 @@ const TutorSetup = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="id_proof">🪪 ID Proof (Aadhaar, PAN, Passport)</SelectItem>
-                        <SelectItem value="education">🎓 Education Certificate</SelectItem>
+                        <SelectItem value="bachelor_degree">🎓 Bachelor's Degree Certificate</SelectItem>
+                        <SelectItem value="masters_degree">🎓 Master's Degree Certificate</SelectItem>
+                        <SelectItem value="phd_certificate">🎓 PhD Certificate</SelectItem>
+                        <SelectItem value="teaching_certificate">📜 Teaching Certificate (CTET, NET, etc.)</SelectItem>
                         <SelectItem value="experience">💼 Experience / Employment Proof</SelectItem>
                       </SelectContent>
                     </Select>

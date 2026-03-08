@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Star, MapPin, Briefcase, GraduationCap, BookOpen, ArrowLeft, MessageSquare, CalendarIcon, Flag, ShieldCheck, Heart } from "lucide-react";
+import { VerificationBadges } from "@/components/VerificationBadges";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -109,7 +110,14 @@ const TutorProfile = () => {
               <div className="text-center sm:text-left">
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="font-display text-2xl font-bold text-foreground">{tutor.full_name}</h1>
-                  {tutor.is_verified && <Badge variant="secondary" className="bg-secondary text-secondary-foreground">Verified</Badge>}
+                </div>
+                <div className="mt-2">
+                  <VerificationBadges
+                    isVerified={tutor.is_verified}
+                    education={tutor.education}
+                    rating={tutor.rating}
+                    totalReviews={tutor.total_reviews}
+                  />
                 </div>
                 <p className="mt-1 text-muted-foreground">{tutor.subject} Tutor</p>
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">

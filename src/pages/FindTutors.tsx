@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation, Calendar, Heart } from "lucide-react";
+import { VerificationBadges } from "@/components/VerificationBadges";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -394,10 +395,16 @@ const FindTutors = () => {
                           <Avatar className="h-14 w-14 border-2 border-primary/20">
                             <AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials}</AvatarFallback>
                           </Avatar>
-                          <div className="min-w-0 flex-1">
+                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <h3 className="truncate font-semibold text-foreground">{name}</h3>
-                              {t.is_verified && <Badge variant="secondary" className="shrink-0 bg-secondary text-secondary-foreground text-xs">Verified</Badge>}
+                              <VerificationBadges
+                                isVerified={t.is_verified}
+                                education={t.education}
+                                rating={t.rating}
+                                totalReviews={t.total_reviews}
+                                compact
+                              />
                             </div>
                             <p className="text-sm text-muted-foreground">{t.subject}</p>
                           </div>
