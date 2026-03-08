@@ -208,6 +208,7 @@ export default function AdminTutors() {
         { key: "verified", label: "Verified" },
       ]
     );
+  };
 
   const updateReportStatus = async (reportId: string, status: string) => {
     const notes = adminNotes[reportId] || null;
