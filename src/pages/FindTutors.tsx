@@ -97,6 +97,7 @@ const FindTutors = () => {
   const [searchCoords, setSearchCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const [subjectFilter, setSubjectFilter] = useState(searchParams.get("subject") || "");
   const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
