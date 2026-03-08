@@ -59,6 +59,7 @@ export default function AdminTutors() {
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const loadData = async () => {
