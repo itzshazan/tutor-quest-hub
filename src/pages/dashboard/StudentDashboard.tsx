@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock, Heart, Settings } from "lucide-react";
+import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock, Heart, Settings, CreditCard, Loader2 } from "lucide-react";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
@@ -21,6 +22,7 @@ interface SessionRow {
   end_time: string;
   status: string;
   tutor_name?: string;
+  payment_status?: string | null;
 }
 
 interface ConvoRow {
@@ -35,6 +37,7 @@ interface ConvoRow {
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-accent/20 text-accent-foreground",
   confirmed: "bg-secondary/20 text-secondary",
+  payment_pending: "bg-primary/20 text-primary",
   completed: "bg-muted text-muted-foreground",
   cancelled: "bg-destructive/20 text-destructive",
   declined: "bg-destructive/20 text-destructive",
@@ -47,14 +50,24 @@ interface SavedTutorRow {
   avatar_url: string | null;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pending Tutor Confirmation",
+  confirmed: "Payment Required",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  declined: "Declined",
+};
+
 const StudentDashboard = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [conversations, setConversations] = useState<ConvoRow[]>([]);
   const [savedTutors, setSavedTutors] = useState<SavedTutorRow[]>([]);
   const [stats, setStats] = useState({ total: 0, upcoming: 0, tutors: 0, reviews: 0 });
   const [loading, setLoading] = useState(true);
+  const [payingSessionId, setPayingSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -88,9 +101,23 @@ const StudentDashboard = () => {
       profiles?.forEach((p) => (tutorMap[p.user_id] = p.full_name));
     }
 
+    // Fetch payment status for upcoming sessions
+    const sessionIds = upcoming.map((s) => s.id);
+    let paymentMap: Record<string, string> = {};
+    if (sessionIds.length) {
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("session_id, payment_status")
+        .in("session_id", sessionIds);
+      payments?.forEach((p) => {
+        if (p.session_id) paymentMap[p.session_id] = p.payment_status;
+      });
+    }
+
     const enriched = upcoming.slice(0, 5).map((s) => ({
       ...s,
       tutor_name: tutorMap[s.tutor_id] || "Tutor",
+      payment_status: paymentMap[s.id] || null,
     }));
     setSessions(enriched);
 
@@ -173,6 +200,35 @@ const StudentDashboard = () => {
     setLoading(false);
   };
 
+  const handlePay = async (sessionId: string) => {
+    setPayingSessionId(sessionId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-session-payment", {
+        body: { session_id: sessionId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message || "Could not initiate payment", variant: "destructive" });
+    }
+    setPayingSessionId(null);
+  };
+
+  const getStatusDisplay = (s: SessionRow) => {
+    if (s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed")) {
+      return { label: "Payment Required", color: "bg-primary/20 text-primary" };
+    }
+    if (s.status === "confirmed" && s.payment_status === "pending") {
+      return { label: "Payment Held", color: "bg-secondary/20 text-secondary" };
+    }
+    if (s.status === "confirmed" && s.payment_status === "completed") {
+      return { label: "Session Confirmed", color: "bg-secondary/20 text-secondary" };
+    }
+    return { label: STATUS_LABELS[s.status] || s.status, color: STATUS_COLORS[s.status] || "" };
+  };
+
   const statCards = [
     { label: "Total Sessions", value: stats.total, icon: BookOpen, color: "text-primary" },
     { label: "Upcoming", value: stats.upcoming, icon: Clock, color: "text-secondary" },
@@ -241,18 +297,30 @@ const StudentDashboard = () => {
               ) : sessions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No upcoming sessions. <Link to="/find-tutors" className="text-primary hover:underline">Find a tutor</Link> to get started!</p>
               ) : (
-                sessions.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-1">
-                      <p className="font-medium text-foreground">{s.subject}</p>
-                      <p className="text-sm text-muted-foreground">with {s.tutor_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(s.session_date), "MMM d, yyyy")} · {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
-                      </p>
+                sessions.map((s) => {
+                  const statusDisplay = getStatusDisplay(s);
+                  const needsPayment = s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed");
+                  return (
+                    <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">{s.subject}</p>
+                        <p className="text-sm text-muted-foreground">with {s.tutor_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(s.session_date), "MMM d, yyyy")} · {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {needsPayment && (
+                          <Button size="sm" className="h-7 gap-1 text-xs" onClick={() => handlePay(s.id)} disabled={payingSessionId === s.id}>
+                            {payingSessionId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}
+                            Pay Now
+                          </Button>
+                        )}
+                        <Badge className={statusDisplay.color}>{statusDisplay.label}</Badge>
+                      </div>
                     </div>
-                    <Badge className={STATUS_COLORS[s.status] || ""}>{s.status}</Badge>
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
