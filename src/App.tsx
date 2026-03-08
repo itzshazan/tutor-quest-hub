@@ -28,6 +28,7 @@ const TutorSetup = lazy(() => import("./pages/TutorSetup"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Sessions = lazy(() => import("./pages/Sessions"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
+const Settings = lazy(() => import("./pages/Settings"));
 const StudentDashboard = lazy(() => import("./pages/dashboard/StudentDashboard"));
 const TutorDashboard = lazy(() => import("./pages/dashboard/TutorDashboard"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
