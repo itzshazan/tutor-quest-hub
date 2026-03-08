@@ -158,6 +158,20 @@ const Login = () => {
             <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
               Forgot your password?
             </Link>
+            
+            {showResendOption && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                disabled={resendLoading}
+                onClick={handleResendVerification}
+              >
+                <Mail className="h-4 w-4" />
+                {resendLoading ? "Sending..." : "Resend verification email"}
+              </Button>
+            )}
           </CardFooter>
         </form>
       </Card>
