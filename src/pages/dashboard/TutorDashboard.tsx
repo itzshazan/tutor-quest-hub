@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { CalendarDays, MessageSquare, UserCog, Star, Users, BookOpen, CheckCircle, XCircle, IndianRupee, Wallet, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
 interface SessionRow {
   id: string;
