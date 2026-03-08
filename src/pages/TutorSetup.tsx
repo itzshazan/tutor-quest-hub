@@ -305,8 +305,11 @@ const TutorSetup = () => {
     <div className="min-h-screen bg-background">
       <div className="border-b bg-card">
         <div className="container flex h-16 items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <GraduationCap className="h-7 w-7 text-primary" />
-          <span className="font-display text-xl font-bold text-primary">Tutor Quest</span>
+          <span className="text-xl font-bold text-primary">Tutor Quest</span>
           <span className="text-sm text-muted-foreground">— Complete Your Profile</span>
         </div>
       </div>
