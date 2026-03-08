@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, BookOpen, ArrowRight, CheckCircle2 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
 
 const TRUST_ITEMS = [
   "10,000+ students",
@@ -12,11 +11,28 @@ const TRUST_ITEMS = [
   "Secure payments",
 ];
 
+/* Floating orbs config — generated once */
+const ORB_COUNT = 6;
+
+function generateOrbs() {
+  return Array.from({ length: ORB_COUNT }, (_, i) => ({
+    id: i,
+    size: 120 + Math.random() * 260,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    duration: 18 + Math.random() * 14,
+    delay: Math.random() * -20,
+    hue: i % 2 === 0 ? "var(--primary)" : "var(--accent)",
+    opacity: 0.08 + Math.random() * 0.07,
+  }));
+}
+
 const HeroSection = () => {
   const navigate = useNavigate();
   const [subject, setSubject] = useState("");
   const [location, setLocation] = useState("");
   const sectionRef = useRef<HTMLElement>(null);
+  const orbs = useMemo(generateOrbs, []);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -36,11 +52,41 @@ const HeroSection = () => {
 
   return (
     <section ref={sectionRef} id="home" className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24">
-      {/* Parallax background */}
+      {/* Parallax gradient base */}
       <motion.div
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-secondary/50 via-background to-background"
         style={{ y: bgY }}
       />
+
+      {/* Floating orbs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        {orbs.map((orb) => (
+          <motion.div
+            key={orb.id}
+            className="absolute rounded-full blur-3xl will-change-transform"
+            style={{
+              width: orb.size,
+              height: orb.size,
+              left: `${orb.x}%`,
+              top: `${orb.y}%`,
+              background: `hsl(${orb.hue} / ${orb.opacity})`,
+            }}
+            animate={{
+              x: [0, 40, -30, 20, 0],
+              y: [0, -35, 25, -15, 0],
+              scale: [1, 1.15, 0.9, 1.05, 1],
+            }}
+            transition={{
+              duration: orb.duration,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: orb.delay,
+            }}
+          />
+        ))}
+        {/* Mesh gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.04] via-transparent to-accent/[0.06]" />
+      </div>
 
       <div className="container relative">
         <motion.div className="mx-auto max-w-3xl text-center" style={{ y: textY, opacity }}>
