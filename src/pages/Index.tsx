@@ -9,10 +9,15 @@ import PricingSection from "@/components/landing/PricingSection";
 import TutorCTA from "@/components/landing/TutorCTA";
 import Testimonials from "@/components/landing/Testimonials";
 import Footer from "@/components/landing/Footer";
+import { SEO, jsonLdGenerators } from "@/components/SEO";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        url="/"
+        jsonLd={jsonLdGenerators.service()}
+      />
       <Navbar />
       <HeroSection />
       <TutorSearchPreview />

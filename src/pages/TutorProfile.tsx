@@ -16,6 +16,7 @@ import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import ReviewSection from "@/components/ReviewSection";
+import { SEO, jsonLdGenerators } from "@/components/SEO";
 
 interface TutorData {
   full_name: string;
