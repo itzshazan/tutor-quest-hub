@@ -77,6 +77,9 @@ function AnimatedRoutes() {
             <Route path="/payments" element={
               <ProtectedRoute><PaymentHistory /></ProtectedRoute>
             } />
+            <Route path="/settings" element={
+              <ProtectedRoute><Settings /></ProtectedRoute>
+            } />
 
             {/* Role-specific routes */}
             <Route path="/dashboard/student" element={
