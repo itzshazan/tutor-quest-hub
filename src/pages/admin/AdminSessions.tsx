@@ -97,8 +97,8 @@ export default function AdminSessions() {
                     <TableCell>{s.student_name}</TableCell>
                     <TableCell>{s.tutor_name}</TableCell>
                     <TableCell>{s.subject}</TableCell>
-                    <TableCell>{new Date(s.session_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{s.start_time} – {s.end_time}</TableCell>
+                    <TableCell>{formatDate(s.session_date)}</TableCell>
+                    <TableCell>{formatTime(s.start_time)} – {formatTime(s.end_time)}</TableCell>
                     <TableCell>
                       <Badge className={STATUS_COLORS[s.status] || ""}>{s.status}</Badge>
                     </TableCell>

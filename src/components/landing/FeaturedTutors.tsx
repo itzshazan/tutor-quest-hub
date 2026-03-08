@@ -109,7 +109,7 @@ const FeaturedTutors = () => {
             ))
           ) : (
             displayTutors.map((t) => {
-              const initials = t.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+              const initials = getInitials(t.full_name);
               return (
                 <StaggerItem key={t.user_id} variant="flipUp">
                   <Tilt3D intensity={8} className="group rounded-2xl border bg-card p-6 shadow-card transition-shadow hover:shadow-card-hover">
