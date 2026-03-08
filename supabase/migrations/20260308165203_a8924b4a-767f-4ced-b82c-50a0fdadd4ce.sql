@@ -1,0 +1,1 @@
+DELETE FROM payments WHERE stripe_payment_intent_id IS NULL AND payment_status = 'pending';
