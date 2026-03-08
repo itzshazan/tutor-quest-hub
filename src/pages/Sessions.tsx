@@ -380,12 +380,51 @@ const SessionCard = ({
   onStatusChange: (id: string, status: string) => void;
 }) => {
   const isTutor = session.tutor_id === userId;
+  const { toast } = useToast();
+  const [payLoading, setPayLoading] = useState(false);
+  const [captureLoading, setCaptureLoading] = useState(false);
+
   const initials = session.other_user?.full_name
     ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2) || "?";
+
+  const handlePay = async () => {
+    setPayLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-session-payment", {
+        body: { session_id: session.id },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message || "Could not initiate payment", variant: "destructive" });
+    }
+    setPayLoading(false);
+  };
+
+  const handleCapture = async () => {
+    setCaptureLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("capture-payment", {
+        body: { session_id: session.id },
+      });
+      if (error) throw error;
+      toast({ title: "Session completed!", description: "Payment has been released to the tutor." });
+      // Trigger reload via realtime
+    } catch (err: any) {
+      toast({ title: "Capture failed", description: err.message || "Could not capture payment", variant: "destructive" });
+    }
+    setCaptureLoading(false);
+  };
+
+  const paymentStatus = session.payment?.payment_status;
+  const needsPayment = !isTutor && session.status === "confirmed" && (!paymentStatus || paymentStatus === "failed");
+  const canCapture = session.status === "confirmed" && paymentStatus === "pending";
 
   return (
     <Card>
@@ -411,13 +450,38 @@ const SessionCard = ({
             {session.notes && (
               <p className="mt-1 text-xs text-muted-foreground italic">"{session.notes}"</p>
             )}
+            {/* Payment info */}
+            {session.payment && (
+              <div className="mt-1 flex items-center gap-2 text-xs">
+                <IndianRupee className="h-3 w-3 text-muted-foreground" />
+                <span className="font-medium">₹{session.payment.amount}</span>
+                <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", 
+                  paymentStatus === "completed" && "border-primary/30 bg-primary/10 text-primary",
+                  paymentStatus === "pending" && "border-accent/30 bg-accent/10 text-accent-foreground",
+                  paymentStatus === "refunded" && "border-destructive/30 bg-destructive/10 text-destructive",
+                )}>
+                  {paymentStatus === "pending" ? "Payment held" : paymentStatus}
+                </Badge>
+                {isTutor && paymentStatus === "completed" && (
+                  <span className="text-muted-foreground">Earned: ₹{session.payment.tutor_earnings}</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className={cn("text-xs", STATUS_COLORS[session.status] || "")}>
             {session.status}
           </Badge>
+
+          {/* Student: Pay for confirmed session */}
+          {needsPayment && (
+            <Button size="sm" className="h-7 gap-1 text-xs" onClick={handlePay} disabled={payLoading}>
+              {payLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}
+              Pay Now
+            </Button>
+          )}
 
           {/* Tutor actions for pending sessions */}
           {isTutor && session.status === "pending" && (
@@ -431,8 +495,16 @@ const SessionCard = ({
             </div>
           )}
 
-          {/* Tutor can mark confirmed as completed */}
-          {isTutor && session.status === "confirmed" && (
+          {/* Complete session & capture payment */}
+          {isTutor && canCapture && (
+            <Button size="sm" variant="secondary" className="h-7 gap-1 text-xs" onClick={handleCapture} disabled={captureLoading}>
+              {captureLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+              Complete & Release Payment
+            </Button>
+          )}
+
+          {/* Tutor can mark as completed (no payment) */}
+          {isTutor && session.status === "confirmed" && !paymentStatus && (
             <Button size="sm" variant="secondary" className="h-7 gap-1 text-xs" onClick={() => onStatusChange(session.id, "completed")}>
               <Check className="h-3 w-3" /> Complete
             </Button>
