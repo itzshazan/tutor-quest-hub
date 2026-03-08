@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import {
   GraduationCap, Send, ArrowLeft, MessageSquare, Search, Check, CheckCheck,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ConversationListSkeleton, ChatMessagesSkeleton } from "@/components/skeletons/MessagesSkeleton";
 
 interface Conversation {
   id: string;
@@ -253,7 +253,7 @@ const Messages = () => {
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Skeleton className="h-12 w-48" />
+        <div className="h-12 w-48 animate-pulse rounded-md bg-muted" />
       </div>
     );
   }
@@ -289,11 +289,7 @@ const Messages = () => {
 
           <ScrollArea className="h-[calc(100vh-7.5rem)]">
             {loadingConvos ? (
-              <div className="space-y-2 p-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full rounded-lg" />
-                ))}
-              </div>
+              <ConversationListSkeleton />
             ) : filteredConvos.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center">
                 <MessageSquare className="h-10 w-10 text-muted-foreground/40" />
@@ -402,11 +398,7 @@ const Messages = () => {
               {/* Messages */}
               <ScrollArea className="flex-1 px-4 py-4">
                 {loadingMessages ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-10 w-2/3 rounded-xl" />
-                    ))}
-                  </div>
+                  <ChatMessagesSkeleton />
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <p className="text-sm text-muted-foreground">

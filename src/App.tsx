@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,26 +9,33 @@ import { ThemeProvider } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { ProtectedRoute } from "@/components/guards/ProtectedRoute";
 import { RoleGuard } from "@/components/guards/RoleGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageLoader } from "@/components/PageLoader";
+import { OfflineBanner } from "@/components/OfflineBanner";
+
+// Eager-loaded (critical path)
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import TutorProfile from "./pages/TutorProfile";
-import FindTutors from "./pages/FindTutors";
-import TutorSetup from "./pages/TutorSetup";
-import Messages from "./pages/Messages";
-import Sessions from "./pages/Sessions";
-import PaymentHistory from "./pages/PaymentHistory";
-import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import TutorDashboard from "./pages/dashboard/TutorDashboard";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminTutors from "./pages/admin/AdminTutors";
-import AdminSessions from "./pages/admin/AdminSessions";
-import AdminReviews from "./pages/admin/AdminReviews";
-import AdminRevenue from "./pages/admin/AdminRevenue";
+
+// Lazy-loaded pages
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const TutorProfile = lazy(() => import("./pages/TutorProfile"));
+const FindTutors = lazy(() => import("./pages/FindTutors"));
+const TutorSetup = lazy(() => import("./pages/TutorSetup"));
+const Messages = lazy(() => import("./pages/Messages"));
+const Sessions = lazy(() => import("./pages/Sessions"));
+const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
+const StudentDashboard = lazy(() => import("./pages/dashboard/StudentDashboard"));
+const TutorDashboard = lazy(() => import("./pages/dashboard/TutorDashboard"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminTutors = lazy(() => import("./pages/admin/AdminTutors"));
+const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
+const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
 
 const queryClient = new QueryClient();
 
@@ -44,64 +52,66 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div key={location.pathname} {...pageTransition}>
-        <Routes location={location}>
-          {/* Public routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/find-tutors" element={<FindTutors />} />
-          <Route path="/tutor/:id" element={<TutorProfile />} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes location={location}>
+            {/* Public routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/find-tutors" element={<FindTutors />} />
+            <Route path="/tutor/:id" element={<TutorProfile />} />
 
-          {/* Protected routes (any authenticated user) */}
-          <Route path="/tutor/setup" element={
-            <ProtectedRoute><TutorSetup /></ProtectedRoute>
-          } />
-          <Route path="/messages" element={
-            <ProtectedRoute><Messages /></ProtectedRoute>
-          } />
-          <Route path="/sessions" element={
-            <ProtectedRoute><Sessions /></ProtectedRoute>
-          } />
-          <Route path="/payments" element={
-            <ProtectedRoute><PaymentHistory /></ProtectedRoute>
-          } />
+            {/* Protected routes (any authenticated user) */}
+            <Route path="/tutor/setup" element={
+              <ProtectedRoute><TutorSetup /></ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute><Messages /></ProtectedRoute>
+            } />
+            <Route path="/sessions" element={
+              <ProtectedRoute><Sessions /></ProtectedRoute>
+            } />
+            <Route path="/payments" element={
+              <ProtectedRoute><PaymentHistory /></ProtectedRoute>
+            } />
 
-          {/* Role-specific routes */}
-          <Route path="/dashboard/student" element={
-            <RoleGuard allowedRole="student" redirectTo="/dashboard/tutor">
-              <StudentDashboard />
-            </RoleGuard>
-          } />
-          <Route path="/dashboard/tutor" element={
-            <RoleGuard allowedRole="tutor" redirectTo="/dashboard/student">
-              <TutorDashboard />
-            </RoleGuard>
-          } />
+            {/* Role-specific routes */}
+            <Route path="/dashboard/student" element={
+              <RoleGuard allowedRole="student" redirectTo="/dashboard/tutor">
+                <StudentDashboard />
+              </RoleGuard>
+            } />
+            <Route path="/dashboard/tutor" element={
+              <RoleGuard allowedRole="tutor" redirectTo="/dashboard/student">
+                <TutorDashboard />
+              </RoleGuard>
+            } />
 
-          {/* Admin routes */}
-          <Route path="/admin" element={
-            <RoleGuard allowedRole="admin"><AdminDashboard /></RoleGuard>
-          } />
-          <Route path="/admin/users" element={
-            <RoleGuard allowedRole="admin"><AdminUsers /></RoleGuard>
-          } />
-          <Route path="/admin/tutors" element={
-            <RoleGuard allowedRole="admin"><AdminTutors /></RoleGuard>
-          } />
-          <Route path="/admin/sessions" element={
-            <RoleGuard allowedRole="admin"><AdminSessions /></RoleGuard>
-          } />
-          <Route path="/admin/reviews" element={
-            <RoleGuard allowedRole="admin"><AdminReviews /></RoleGuard>
-          } />
-          <Route path="/admin/revenue" element={
-            <RoleGuard allowedRole="admin"><AdminRevenue /></RoleGuard>
-          } />
+            {/* Admin routes */}
+            <Route path="/admin" element={
+              <RoleGuard allowedRole="admin"><AdminDashboard /></RoleGuard>
+            } />
+            <Route path="/admin/users" element={
+              <RoleGuard allowedRole="admin"><AdminUsers /></RoleGuard>
+            } />
+            <Route path="/admin/tutors" element={
+              <RoleGuard allowedRole="admin"><AdminTutors /></RoleGuard>
+            } />
+            <Route path="/admin/sessions" element={
+              <RoleGuard allowedRole="admin"><AdminSessions /></RoleGuard>
+            } />
+            <Route path="/admin/reviews" element={
+              <RoleGuard allowedRole="admin"><AdminReviews /></RoleGuard>
+            } />
+            <Route path="/admin/revenue" element={
+              <RoleGuard allowedRole="admin"><AdminRevenue /></RoleGuard>
+            } />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </motion.div>
     </AnimatePresence>
   );
@@ -113,9 +123,12 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <OfflineBanner />
         <BrowserRouter>
           <AuthProvider>
-            <AnimatedRoutes />
+            <ErrorBoundary>
+              <AnimatedRoutes />
+            </ErrorBoundary>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock, Heart } from "lucide-react";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { format } from "date-fns";
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
 interface SessionRow {
   id: string;
@@ -178,6 +179,14 @@ const StudentDashboard = () => {
     { label: "Tutors", value: stats.tutors, icon: Users, color: "text-accent-foreground" },
     { label: "Reviews Given", value: stats.reviews, icon: Star, color: "text-accent-foreground" },
   ];
+
+  if (loading) {
+    return (
+      <DashboardLayout role="student">
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout role="student">

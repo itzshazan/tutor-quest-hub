@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +24,12 @@ serve(async (req) => {
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user) throw new Error("User not authenticated");
+
+    // Rate limit: 10 capture attempts per minute per user
+    const rateCheck = checkRateLimit(`capture:${user.id}`, { limit: 10, windowMs: 60000 });
+    if (rateCheck.limited) {
+      return rateLimitResponse(rateCheck.retryAfter!, corsHeaders);
+    }
 
     const { session_id } = await req.json();
     if (!session_id) throw new Error("session_id is required");

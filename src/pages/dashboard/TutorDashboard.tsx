@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { CalendarDays, MessageSquare, UserCog, Star, Users, BookOpen, CheckCircle, XCircle, IndianRupee, Wallet, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
 interface SessionRow {
   id: string;
@@ -143,6 +144,14 @@ const TutorDashboard = () => {
     { label: "Completed", value: stats.completed, icon: BookOpen, color: "text-secondary" },
     { label: "Avg Rating", value: stats.rating ? `${stats.rating}★` : "–", icon: Star, color: "text-accent-foreground" },
   ];
+
+  if (loading) {
+    return (
+      <DashboardLayout role="tutor">
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout role="tutor">
