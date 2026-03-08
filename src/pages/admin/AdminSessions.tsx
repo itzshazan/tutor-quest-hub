@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate, formatTime } from "@/lib/formatters";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -96,8 +97,8 @@ export default function AdminSessions() {
                     <TableCell>{s.student_name}</TableCell>
                     <TableCell>{s.tutor_name}</TableCell>
                     <TableCell>{s.subject}</TableCell>
-                    <TableCell>{new Date(s.session_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{s.start_time} – {s.end_time}</TableCell>
+                    <TableCell>{formatDate(s.session_date)}</TableCell>
+                    <TableCell>{formatTime(s.start_time)} – {formatTime(s.end_time)}</TableCell>
                     <TableCell>
                       <Badge className={STATUS_COLORS[s.status] || ""}>{s.status}</Badge>
                     </TableCell>
