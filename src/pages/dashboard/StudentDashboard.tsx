@@ -22,6 +22,7 @@ interface SessionRow {
   end_time: string;
   status: string;
   tutor_name?: string;
+  payment_status?: string | null;
 }
 
 interface ConvoRow {
