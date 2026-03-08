@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X } from "lucide-react";
+import { Star, MapPin, Briefcase, Search, GraduationCap, ArrowLeft, SlidersHorizontal, X, Navigation } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
 
@@ -22,11 +22,15 @@ interface TutorResult {
   is_verified: boolean | null;
   rating: number | null;
   total_reviews: number | null;
+  grade_levels: string[] | null;
   profiles: {
     full_name: string;
     avatar_url: string | null;
     bio: string | null;
+    latitude: number | null;
+    longitude: number | null;
   } | null;
+  distance?: number;
 }
 
 const ratingOptions = [
@@ -42,20 +46,37 @@ const budgetOptions = [
   { value: "1000", label: "Under ₹1000/hr" },
 ];
 
+const GRADE_LEVELS = [
+  "Grade 1-5", "Grade 6-8", "Grade 9-10", "Grade 11-12",
+  "Undergraduate", "Postgraduate", "Competitive Exams",
+];
+
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 const FindTutors = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tutors, setTutors] = useState<TutorResult[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [sortByDistance, setSortByDistance] = useState(false);
 
-  // Filter state from URL params
   const [subjectFilter, setSubjectFilter] = useState(searchParams.get("subject") || "");
   const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
   const [ratingFilter, setRatingFilter] = useState(searchParams.get("rating") || "0");
   const [budgetFilter, setBudgetFilter] = useState(searchParams.get("budget") || "0");
+  const [gradeFilter, setGradeFilter] = useState(searchParams.get("grade") || "");
 
-  // Fetch subjects list
   useEffect(() => {
     const fetchSubjects = async () => {
       const { data } = await supabase.from("subjects").select("name").order("name");
@@ -64,14 +85,25 @@ const FindTutors = () => {
     fetchSubjects();
   }, []);
 
-  // Fetch tutors with filters
+  const detectLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setSortByDistance(true);
+        },
+        () => {}
+      );
+    }
+  };
+
   useEffect(() => {
     const fetchTutors = async () => {
       setLoading(true);
 
       let query = supabase
         .from("tutor_profiles")
-        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, profiles!inner(full_name, avatar_url, bio)")
+        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
         .order("rating", { ascending: false, nullsFirst: false });
 
       if (subjectFilter) {
@@ -86,17 +118,40 @@ const FindTutors = () => {
       if (budgetFilter && budgetFilter !== "0") {
         query = query.lte("hourly_rate", parseFloat(budgetFilter));
       }
+      if (gradeFilter) {
+        query = query.contains("grade_levels", [gradeFilter]);
+      }
 
       const { data, error } = await query;
 
       if (!error && data) {
-        setTutors(data as unknown as TutorResult[]);
+        let results = data as unknown as TutorResult[];
+
+        // Calculate distances if user location available
+        if (userLocation && sortByDistance) {
+          results = results.map((t) => {
+            const lat = (t.profiles as any)?.latitude;
+            const lng = (t.profiles as any)?.longitude;
+            if (lat && lng) {
+              return { ...t, distance: haversineDistance(userLocation.lat, userLocation.lng, lat, lng) };
+            }
+            return { ...t, distance: undefined };
+          });
+          results.sort((a, b) => {
+            if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance;
+            if (a.distance !== undefined) return -1;
+            if (b.distance !== undefined) return 1;
+            return 0;
+          });
+        }
+
+        setTutors(results);
       }
       setLoading(false);
     };
 
     fetchTutors();
-  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter]);
+  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter, gradeFilter, userLocation, sortByDistance]);
 
   const handleSearch = () => {
     const params: Record<string, string> = {};
@@ -104,6 +159,7 @@ const FindTutors = () => {
     if (locationFilter) params.location = locationFilter;
     if (ratingFilter !== "0") params.rating = ratingFilter;
     if (budgetFilter !== "0") params.budget = budgetFilter;
+    if (gradeFilter) params.grade = gradeFilter;
     setSearchParams(params);
   };
 
@@ -112,14 +168,15 @@ const FindTutors = () => {
     setLocationFilter("");
     setRatingFilter("0");
     setBudgetFilter("0");
+    setGradeFilter("");
+    setSortByDistance(false);
     setSearchParams({});
   };
 
-  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0";
+  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0" || gradeFilter || sortByDistance;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-lg">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold text-primary">
@@ -133,22 +190,19 @@ const FindTutors = () => {
       </div>
 
       <div className="container py-8">
-        {/* Search bar */}
         <ScrollReveal>
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold text-foreground md:text-4xl">Find Tutors</h1>
-            <p className="mt-2 text-muted-foreground">Search qualified tutors by subject, location, and more</p>
+            <p className="mt-2 text-muted-foreground">Search qualified tutors by subject, location, grade level, and more</p>
           </div>
         </ScrollReveal>
 
         <ScrollReveal delay={0.1}>
-          <div className="mb-8 flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm sm:flex-row sm:items-end">
-            <div className="flex-1 space-y-1">
+          <div className="mb-8 flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm sm:flex-row sm:items-end sm:flex-wrap">
+            <div className="flex-1 min-w-[150px] space-y-1">
               <label className="text-xs font-medium text-muted-foreground">Subject</label>
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Subjects" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="All Subjects" /></SelectTrigger>
                 <SelectContent>
                   {subjects.map((s) => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
@@ -157,27 +211,31 @@ const FindTutors = () => {
               </Select>
             </div>
 
-            <div className="flex-1 space-y-1">
+            <div className="flex-1 min-w-[150px] space-y-1">
               <label className="text-xs font-medium text-muted-foreground">Location</label>
-              <Input
-                placeholder="e.g. Delhi, Mumbai..."
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-              />
+              <Input placeholder="e.g. Delhi, Mumbai..." value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} />
             </div>
 
-            {/* Mobile filter toggle */}
+            <div className="flex-1 min-w-[150px] space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Grade Level</label>
+              <Select value={gradeFilter} onValueChange={setGradeFilter}>
+                <SelectTrigger><SelectValue placeholder="All Grades" /></SelectTrigger>
+                <SelectContent>
+                  {GRADE_LEVELS.map((g) => (
+                    <SelectItem key={g} value={g}>{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button variant="outline" className="gap-2 sm:hidden" onClick={() => setShowFilters(!showFilters)}>
-              <SlidersHorizontal className="h-4 w-4" /> Filters
+              <SlidersHorizontal className="h-4 w-4" /> More Filters
             </Button>
 
-            {/* Desktop extra filters */}
-            <div className="hidden flex-1 space-y-1 sm:block">
+            <div className="hidden flex-1 min-w-[130px] space-y-1 sm:block">
               <label className="text-xs font-medium text-muted-foreground">Budget</label>
               <Select value={budgetFilter} onValueChange={setBudgetFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {budgetOptions.map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -186,12 +244,10 @@ const FindTutors = () => {
               </Select>
             </div>
 
-            <div className="hidden flex-1 space-y-1 sm:block">
+            <div className="hidden flex-1 min-w-[130px] space-y-1 sm:block">
               <label className="text-xs font-medium text-muted-foreground">Rating</label>
               <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {ratingOptions.map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -204,6 +260,9 @@ const FindTutors = () => {
               <Button onClick={handleSearch} className="gap-2">
                 <Search className="h-4 w-4" /> Search
               </Button>
+              <Button variant="outline" size="icon" onClick={detectLocation} title="Sort by distance">
+                <Navigation className="h-4 w-4" />
+              </Button>
               {hasActiveFilters && (
                 <Button variant="ghost" size="icon" onClick={clearFilters} title="Clear filters">
                   <X className="h-4 w-4" />
@@ -213,7 +272,6 @@ const FindTutors = () => {
           </div>
         </ScrollReveal>
 
-        {/* Mobile filters */}
         {showFilters && (
           <div className="mb-6 flex gap-3 sm:hidden">
             <div className="flex-1 space-y-1">
@@ -241,7 +299,13 @@ const FindTutors = () => {
           </div>
         )}
 
-        {/* Results */}
+        {sortByDistance && userLocation && (
+          <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <Navigation className="h-4 w-4 text-primary" />
+            <span>Sorted by distance from your location</span>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -254,14 +318,10 @@ const FindTutors = () => {
               <Search className="mx-auto h-12 w-12 text-muted-foreground/30" />
               <h2 className="mt-4 font-display text-xl font-semibold text-foreground">No tutors found</h2>
               <p className="mt-2 text-muted-foreground">
-                {hasActiveFilters
-                  ? "Try adjusting your filters to see more results."
-                  : "No tutors have registered yet. Be the first!"}
+                {hasActiveFilters ? "Try adjusting your filters to see more results." : "No tutors have registered yet. Be the first!"}
               </p>
               {hasActiveFilters && (
-                <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
+                <Button variant="outline" className="mt-4" onClick={clearFilters}>Clear Filters</Button>
               )}
             </div>
           </ScrollReveal>
@@ -302,7 +362,21 @@ const FindTutors = () => {
                           {t.rating && t.rating > 0 && (
                             <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-accent text-accent" /> {t.rating}</span>
                           )}
+                          {t.distance !== undefined && (
+                            <span className="flex items-center gap-1"><Navigation className="h-3.5 w-3.5" /> {t.distance.toFixed(1)} km</span>
+                          )}
                         </div>
+
+                        {t.grade_levels && t.grade_levels.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {t.grade_levels.slice(0, 3).map((g) => (
+                              <Badge key={g} variant="outline" className="text-xs">{g}</Badge>
+                            ))}
+                            {t.grade_levels.length > 3 && (
+                              <Badge variant="outline" className="text-xs">+{t.grade_levels.length - 3}</Badge>
+                            )}
+                          </div>
+                        )}
 
                         {t.hourly_rate && t.hourly_rate > 0 && (
                           <p className="mt-3 text-lg font-bold text-foreground">₹{t.hourly_rate}/hr</p>
