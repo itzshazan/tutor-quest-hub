@@ -107,6 +107,11 @@ const Navbar = () => {
               {user ? (
                 <>
                   <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"} onClick={() => setMobileOpen(false)}>
+                      <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
                     <Link to="/messages" onClick={() => setMobileOpen(false)}>
                       <MessageSquare className="h-4 w-4" /> Messages
                     </Link>
