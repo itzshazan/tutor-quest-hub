@@ -113,6 +113,9 @@ const FindTutors = () => {
     }
   };
 
+  // Debounce location filter to avoid firing query on every keystroke
+  const debouncedLocation = useDebounce(locationFilter, 400);
+
   useEffect(() => {
     const fetchTutors = async () => {
       setLoading(true);
