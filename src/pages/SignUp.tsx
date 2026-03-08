@@ -10,11 +10,14 @@ import { GraduationCap, Eye, EyeOff, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable";
+import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
+import { phoneSchema } from "@/lib/validations";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<"student" | "tutor">("student");
@@ -39,11 +42,27 @@ const SignUp = () => {
     );
   };
 
+  const validatePhone = (value: string) => {
+    const result = phoneSchema.safeParse(value);
+    if (!result.success) {
+      setPhoneError(result.error.errors[0]?.message || "Invalid phone number");
+      return false;
+    }
+    setPhoneError("");
+    return true;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim() || !password.trim()) return;
     if (password.length < 6) {
       toast({ title: "Password too short", description: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+
+    // Validate phone if provided
+    if (phone.trim() && !validatePhone(phone)) {
+      toast({ title: "Invalid phone number", description: phoneError, variant: "destructive" });
       return;
     }
 
