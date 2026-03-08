@@ -1,12 +1,15 @@
-import { MapPin, ShieldCheck, MessageSquare, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
+import featureLocation from "@/assets/feature-location.png";
+import featureVerified from "@/assets/feature-verified.png";
+import featureChat from "@/assets/feature-chat.png";
+import featureSchedule from "@/assets/feature-schedule.png";
 
 const features = [
-  { icon: MapPin, title: "Location-Based Search", desc: "Find tutors near your location with distance-aware search results." },
-  { icon: ShieldCheck, title: "Verified Profiles", desc: "Every profile includes education, experience, and authentic ratings." },
-  { icon: MessageSquare, title: "Direct Communication", desc: "Message tutors directly to discuss your learning needs." },
-  { icon: Clock, title: "Flexible Scheduling", desc: "Schedule sessions based on both your and the tutor's availability." },
+  { image: featureLocation, title: "Location-Based Search", desc: "Find tutors near your location with distance-aware search results." },
+  { image: featureVerified, title: "Verified Profiles", desc: "Every profile includes education, experience, and authentic ratings." },
+  { image: featureChat, title: "Direct Communication", desc: "Message tutors directly to discuss your learning needs." },
+  { image: featureSchedule, title: "Flexible Scheduling", desc: "Schedule sessions based on both your and the tutor's availability." },
 ];
 
 const PlatformFeatures = () => {
@@ -24,10 +27,10 @@ const PlatformFeatures = () => {
         <StaggerContainer className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
           {features.map((f) => (
             <StaggerItem key={f.title}>
-              <Card className="border-0 shadow-neumorphic hover:shadow-elevated">
+              <Card className="border-0 shadow-neumorphic hover:shadow-elevated group">
                 <CardContent className="p-8 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                    <f.icon className="h-7 w-7 text-primary" />
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <img src={f.image} alt={f.title} className="h-full w-full object-contain" />
                   </div>
                   <h3 className="mt-5 font-bold text-foreground">{f.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
