@@ -5,6 +5,7 @@ import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays, L
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "next-themes";
+import { motion, useScroll, useSpring } from "framer-motion";
 
 const navLinks = [
   { label: "Home", href: "#home" },
