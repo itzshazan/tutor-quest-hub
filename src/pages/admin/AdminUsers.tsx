@@ -4,13 +4,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { MoreHorizontal, ShieldCheck, Ban, Trash2, Download } from "lucide-react";
+import { MoreHorizontal, ShieldCheck, Ban, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { exportToCSV } from "@/lib/exportUtils";
+
+const PAGE_SIZE = 20;
 
 interface Profile {
   id: string;
@@ -26,18 +28,49 @@ export default function AdminUsers() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roleFilter, setRoleFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [actionDialog, setActionDialog] = useState<{ type: "suspend" | "promote" | "delete"; user: Profile } | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [actionDialog, setActionDialog] = useState<{ type: "suspend" | "promote"; user: Profile } | null>(null);
   const { toast } = useToast();
 
   const loadProfiles = async () => {
-    const { data } = await supabase.from("profiles").select("*");
-    setProfiles(data || []);
+    setLoading(true);
+    
+    // Build query with pagination
+    let query = supabase
+      .from("profiles")
+      .select("*", { count: "exact" });
+    
+    // Apply role filter
+    if (roleFilter !== "all") {
+      query = query.eq("role", roleFilter);
+    }
+    
+    // Apply pagination
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    
+    const { data, count, error } = await query
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    
+    if (!error) {
+      setProfiles(data || []);
+      setTotalCount(count || 0);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     loadProfiles();
-  }, []);
+  }, [page, roleFilter]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [roleFilter]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const handleSuspend = async (user: Profile) => {
     const newSuspendedAt = user.suspended_at ? null : new Date().toISOString();
@@ -82,32 +115,44 @@ export default function AdminUsers() {
     setActionDialog(null);
   };
 
-  const handleExport = () => {
-    exportToCSV(
-      filtered.map((p) => ({
-        name: p.full_name,
-        role: p.role,
-        phone: p.phone || "",
-        status: p.suspended_at ? "Suspended" : "Active",
-        joined: format(new Date(p.created_at), "yyyy-MM-dd"),
-      })),
-      `users-export-${format(new Date(), "yyyy-MM-dd")}`,
-      [
-        { key: "name", label: "Name" },
-        { key: "role", label: "Role" },
-        { key: "phone", label: "Phone" },
-        { key: "status", label: "Status" },
-        { key: "joined", label: "Joined" },
-      ]
-    );
+  const handleExport = async () => {
+    // For export, fetch all matching records (up to 1000)
+    let query = supabase.from("profiles").select("*");
+    if (roleFilter !== "all") {
+      query = query.eq("role", roleFilter);
+    }
+    const { data } = await query.order("created_at", { ascending: false }).limit(1000);
+    
+    if (data) {
+      exportToCSV(
+        data.map((p) => ({
+          name: p.full_name,
+          role: p.role,
+          phone: p.phone || "",
+          status: p.suspended_at ? "Suspended" : "Active",
+          joined: format(new Date(p.created_at), "yyyy-MM-dd"),
+        })),
+        `users-export-${format(new Date(), "yyyy-MM-dd")}`,
+        [
+          { key: "name", label: "Name" },
+          { key: "role", label: "Role" },
+          { key: "phone", label: "Phone" },
+          { key: "status", label: "Status" },
+          { key: "joined", label: "Joined" },
+        ]
+      );
+    }
   };
-
-  const filtered = roleFilter === "all" ? profiles : profiles.filter((p) => p.role === roleFilter);
 
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <div>
+          <h1 className="text-2xl font-bold">User Management</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {totalCount} total users {roleFilter !== "all" && `(${roleFilter}s)`}
+          </p>
+        </div>
         <div className="flex items-center gap-3">
           <Select value={roleFilter} onValueChange={setRoleFilter}>
             <SelectTrigger className="w-40">
@@ -119,7 +164,7 @@ export default function AdminUsers() {
               <SelectItem value="tutor">Tutors</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
+          <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5" aria-label="Export users to CSV">
             <Download className="h-4 w-4" /> Export
           </Button>
         </div>
@@ -129,7 +174,7 @@ export default function AdminUsers() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" aria-label="Loading" />
             </div>
           ) : (
             <Table>
@@ -140,11 +185,11 @@ export default function AdminUsers() {
                   <TableHead>Phone</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
-                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((p) => (
+                {profiles.map((p) => (
                   <TableRow key={p.id} className={p.suspended_at ? "opacity-60" : ""}>
                     <TableCell className="font-medium">{p.full_name || "Unnamed"}</TableCell>
                     <TableCell className="capitalize">{p.role}</TableCell>
@@ -160,7 +205,7 @@ export default function AdminUsers() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Actions for ${p.full_name}`}>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -178,7 +223,7 @@ export default function AdminUsers() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filtered.length === 0 && (
+                {profiles.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       No users found.
@@ -190,6 +235,37 @@ export default function AdminUsers() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              aria-label="Next page"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Dialog */}
       <AlertDialog open={!!actionDialog} onOpenChange={() => setActionDialog(null)}>
