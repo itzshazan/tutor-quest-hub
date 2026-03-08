@@ -151,7 +151,7 @@ const TutorSetup = () => {
     update("avatarPreview", URL.createObjectURL(file));
   };
 
-  const [docCategory, setDocCategory] = useState<"id_proof" | "education" | "experience">("id_proof");
+  const [docCategory, setDocCategory] = useState<DocCategory>("id_proof");
 
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
