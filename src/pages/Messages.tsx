@@ -289,11 +289,7 @@ const Messages = () => {
 
           <ScrollArea className="h-[calc(100vh-7.5rem)]">
             {loadingConvos ? (
-              <div className="space-y-2 p-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full rounded-lg" />
-                ))}
-              </div>
+              <ConversationListSkeleton />
             ) : filteredConvos.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center">
                 <MessageSquare className="h-10 w-10 text-muted-foreground/40" />
