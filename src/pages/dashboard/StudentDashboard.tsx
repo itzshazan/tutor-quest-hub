@@ -296,7 +296,7 @@ const StudentDashboard = () => {
               ) : (
                 sessions.map((s) => {
                   const statusDisplay = getStatusDisplay(s);
-                  const needsPayment = s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed");
+                  const needsPayment = s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed" || s.payment_status === "pending");
                   return (
                     <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
                       <div className="space-y-1">
