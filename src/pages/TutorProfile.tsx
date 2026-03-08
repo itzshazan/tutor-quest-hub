@@ -38,6 +38,7 @@ const TutorProfile = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [tutor, setTutor] = useState<TutorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
