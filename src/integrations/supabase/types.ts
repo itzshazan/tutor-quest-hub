@@ -73,6 +73,68 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          captured_at: string | null
+          created_at: string
+          id: string
+          payment_method: string | null
+          payment_status: string
+          platform_commission: number
+          refunded_at: string | null
+          session_id: string | null
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          student_id: string
+          tutor_earnings: number
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          captured_at?: string | null
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          payment_status?: string
+          platform_commission?: number
+          refunded_at?: string | null
+          session_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          student_id: string
+          tutor_earnings?: number
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          captured_at?: string | null
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          payment_status?: string
+          platform_commission?: number
+          refunded_at?: string | null
+          session_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          student_id?: string
+          tutor_earnings?: number
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

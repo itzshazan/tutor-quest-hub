@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { CalendarDays, MessageSquare, UserCog, Star, Users, BookOpen, CheckCircle, XCircle } from "lucide-react";
+import { CalendarDays, MessageSquare, UserCog, Star, Users, BookOpen, CheckCircle, XCircle, IndianRupee, Wallet } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -37,7 +37,7 @@ const TutorDashboard = () => {
   const [pending, setPending] = useState<SessionRow[]>([]);
   const [upcoming, setUpcoming] = useState<SessionRow[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
-  const [stats, setStats] = useState({ students: 0, completed: 0, rating: 0, totalReviews: 0 });
+  const [stats, setStats] = useState({ students: 0, completed: 0, rating: 0, totalReviews: 0, totalEarnings: 0, pendingEarnings: 0 });
   const [profileComplete, setProfileComplete] = useState(100);
   const [loading, setLoading] = useState(true);
 
@@ -106,11 +106,26 @@ const TutorDashboard = () => {
     }
     setReviews((revData || []).map((r) => ({ ...r, student_name: revMap[r.student_id] || "Student" })));
 
+    // Earnings
+    const { data: completedPayments } = await supabase
+      .from("payments")
+      .select("tutor_earnings, payment_status")
+      .eq("tutor_id", uid);
+
+    const totalEarnings = (completedPayments || [])
+      .filter((p) => p.payment_status === "completed")
+      .reduce((sum, p) => sum + Number(p.tutor_earnings), 0);
+    const pendingEarnings = (completedPayments || [])
+      .filter((p) => p.payment_status === "pending")
+      .reduce((sum, p) => sum + Number(p.tutor_earnings), 0);
+
     setStats({
       students: studentIds.length,
       completed: completedCount,
       rating: Number(tp?.rating) || 0,
       totalReviews: tp?.total_reviews || 0,
+      totalEarnings,
+      pendingEarnings,
     });
     setLoading(false);
   };
@@ -122,10 +137,10 @@ const TutorDashboard = () => {
   };
 
   const statCards = [
-    { label: "Total Students", value: stats.students, icon: Users, color: "text-primary" },
+    { label: "Total Earnings", value: `₹${stats.totalEarnings}`, icon: Wallet, color: "text-primary" },
+    { label: "Pending", value: `₹${stats.pendingEarnings}`, icon: IndianRupee, color: "text-accent-foreground" },
     { label: "Completed", value: stats.completed, icon: BookOpen, color: "text-secondary" },
     { label: "Avg Rating", value: stats.rating ? `${stats.rating}★` : "–", icon: Star, color: "text-accent-foreground" },
-    { label: "Reviews", value: stats.totalReviews, icon: Star, color: "text-accent-foreground" },
   ];
 
   return (
