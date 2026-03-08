@@ -157,10 +157,10 @@ const FindTutors = () => {
     const fetchTutors = async () => {
       setLoading(true);
 
+      // Build OR conditions for a single combined .or() call to avoid PostgREST conflicts
       let query = supabase
         .from("tutor_profiles")
         .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius, trust_score, latitude, longitude, city, profiles!inner(full_name, avatar_url, bio)")
-        .eq("is_verified", true)
         .order("trust_score", { ascending: false, nullsFirst: false });
 
       // If day filter is set, get tutor IDs that are available on that day
@@ -173,12 +173,9 @@ const FindTutors = () => {
         availableTutorIds = availData ? [...new Set(availData.map((a) => a.tutor_id))] : [];
       }
 
+      // Subject filter — use .or() for subject matching
       if (subjectFilter) {
         query = query.or(`subject.ilike.%${subjectFilter}%,subjects.cs.{${subjectFilter}}`);
-      }
-      // Only use text-based location filter if we don't have geocoded coordinates
-      if (debouncedLocation && !searchCoords) {
-        query = query.or(`location.ilike.%${debouncedLocation}%,city.ilike.%${debouncedLocation}%`);
       }
       if (ratingFilter && ratingFilter !== "0") {
         query = query.gte("rating", parseFloat(ratingFilter));
