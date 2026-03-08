@@ -30,6 +30,11 @@ const GRADE_LEVELS = [
   "Undergraduate", "Postgraduate", "Competitive Exams",
 ];
 
+interface VerificationDoc {
+  file: File;
+  category: "id_proof" | "education" | "experience";
+}
+
 interface FormData {
   avatarFile: File | null;
   avatarPreview: string;
@@ -44,7 +49,7 @@ interface FormData {
   teachingMethod: string;
   teachingRadius: number;
   availability: { day: string; start: string; end: string }[];
-  verificationDocs: File[];
+  verificationDocs: VerificationDoc[];
   existingDocs: { id: string; document_type: string; status: string }[];
 }
 
@@ -144,13 +149,16 @@ const TutorSetup = () => {
     update("avatarPreview", URL.createObjectURL(file));
   };
 
+  const [docCategory, setDocCategory] = useState<"id_proof" | "education" | "experience">("id_proof");
+
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const valid = files.filter((f) => f.size <= 10 * 1024 * 1024);
     if (valid.length < files.length) {
       toast({ title: "Some files skipped", description: "Max 10 MB per file", variant: "destructive" });
     }
-    update("verificationDocs", [...form.verificationDocs, ...valid]);
+    const newDocs: VerificationDoc[] = valid.map((f) => ({ file: f, category: docCategory }));
+    update("verificationDocs", [...form.verificationDocs, ...newDocs]);
   };
 
   const removeDoc = (index: number) => {
@@ -209,15 +217,21 @@ const TutorSetup = () => {
 
       // Upload verification documents
       for (const doc of form.verificationDocs) {
-        const docPath = `${user.id}/${Date.now()}-${doc.name}`;
+        const docPath = `${user.id}/${Date.now()}-${doc.file.name}`;
         const { error: docErr } = await supabase.storage
           .from("tutor-documents")
-          .upload(docPath, doc);
+          .upload(docPath, doc.file);
         if (docErr) throw docErr;
+
+        const categoryLabels: Record<string, string> = {
+          id_proof: "ID Proof",
+          education: "Education Certificate",
+          experience: "Experience Proof",
+        };
 
         const { error: insertErr } = await supabase.from("tutor_verifications").insert({
           tutor_id: user.id,
-          document_type: doc.name.split(".").pop()?.toUpperCase() || "FILE",
+          document_type: categoryLabels[doc.category] || doc.category,
           file_url: docPath,
         });
         if (insertErr) throw insertErr;
@@ -382,13 +396,13 @@ const TutorSetup = () => {
                 </div>
               </div>
 
-              {/* Verification Documents */}
-              <div className="space-y-3">
+              {/* Verification Documents - Categorized */}
+              <div className="space-y-4">
                 <Label className="flex items-center gap-2">
                   <FileText className="h-4 w-4" /> Verification Documents
                 </Label>
-                <p className="text-xs text-muted-foreground">Upload ID proof, certificates, or qualifications for admin verification</p>
-                
+                <p className="text-xs text-muted-foreground">Upload documents for admin verification. Categorize each upload.</p>
+
                 {form.existingDocs.length > 0 && (
                   <div className="space-y-1.5">
                     {form.existingDocs.map((doc) => (
@@ -403,20 +417,43 @@ const TutorSetup = () => {
                   </div>
                 )}
 
-                {form.verificationDocs.map((doc, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm rounded-md border p-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="truncate flex-1">{doc.name}</span>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeDoc(i)}>
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
+                {form.verificationDocs.map((doc, i) => {
+                  const categoryLabels: Record<string, string> = {
+                    id_proof: "🪪 ID Proof",
+                    education: "🎓 Education",
+                    experience: "💼 Experience",
+                  };
+                  return (
+                    <div key={i} className="flex items-center gap-2 text-sm rounded-md border p-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <Badge variant="outline" className="text-xs shrink-0">{categoryLabels[doc.category]}</Badge>
+                      <span className="truncate flex-1">{doc.file.name}</span>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeDoc(i)}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  );
+                })}
 
-                <label htmlFor="doc-upload" className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed p-3 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                  <Upload className="h-4 w-4" /> Upload document (PDF, JPG, PNG — max 10 MB)
-                </label>
-                <input id="doc-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" multiple onChange={handleDocUpload} />
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Document Category</label>
+                    <Select value={docCategory} onValueChange={(v: any) => setDocCategory(v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="id_proof">🪪 ID Proof (Aadhaar, PAN, Passport)</SelectItem>
+                        <SelectItem value="education">🎓 Education Certificate</SelectItem>
+                        <SelectItem value="experience">💼 Experience / Employment Proof</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <label htmlFor="doc-upload" className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-dashed px-4 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors whitespace-nowrap">
+                    <Upload className="h-4 w-4" /> Upload
+                  </label>
+                  <input id="doc-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" multiple onChange={handleDocUpload} />
+                </div>
               </div>
             </CardContent>
           </Card>
