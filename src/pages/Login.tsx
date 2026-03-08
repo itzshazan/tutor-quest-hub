@@ -8,6 +8,7 @@ import { GraduationCap, Eye, EyeOff, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable";
+import { SEO } from "@/components/SEO";
 
 const Login = () => {
   const [email, setEmail] = useState("");
