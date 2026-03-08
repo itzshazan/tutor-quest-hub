@@ -91,9 +91,23 @@ const StudentDashboard = () => {
       profiles?.forEach((p) => (tutorMap[p.user_id] = p.full_name));
     }
 
+    // Fetch payment status for upcoming sessions
+    const sessionIds = upcoming.map((s) => s.id);
+    let paymentMap: Record<string, string> = {};
+    if (sessionIds.length) {
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("session_id, payment_status")
+        .in("session_id", sessionIds);
+      payments?.forEach((p) => {
+        if (p.session_id) paymentMap[p.session_id] = p.payment_status;
+      });
+    }
+
     const enriched = upcoming.slice(0, 5).map((s) => ({
       ...s,
       tutor_name: tutorMap[s.tutor_id] || "Tutor",
+      payment_status: paymentMap[s.id] || null,
     }));
     setSessions(enriched);
 
