@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock, Heart } from "lucide-react";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
 import { format } from "date-fns";
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
 interface SessionRow {
   id: string;
