@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Briefcase, GraduationCap, BookOpen, ArrowLeft, MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface TutorData {
   full_name: string;
