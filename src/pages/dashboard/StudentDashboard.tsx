@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock, Heart, Settings } from "lucide-react";
+import { CalendarDays, MessageSquare, Search, Star, BookOpen, Users, Clock, Heart, Settings, CreditCard, Loader2 } from "lucide-react";
 import { useSavedTutors } from "@/hooks/useSavedTutors";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
