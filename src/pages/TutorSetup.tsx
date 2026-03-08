@@ -265,6 +265,25 @@ const TutorSetup = () => {
         .eq("user_id", user.id);
       if (profErr) throw profErr;
 
+      // Geocode the tutor's location using Nominatim (free)
+      let geoLat: number | null = null;
+      let geoLng: number | null = null;
+      let geoCity: string | null = null;
+      if (form.location) {
+        try {
+          const { data: geoData } = await supabase.functions.invoke('geocode-location', {
+            body: { address: form.location },
+          });
+          if (geoData && geoData.lat) {
+            geoLat = geoData.lat;
+            geoLng = geoData.lng;
+            geoCity = geoData.city || null;
+          }
+        } catch {
+          // Geocoding failed silently — profile still saves without coords
+        }
+      }
+
       const { error: tutorErr } = await supabase
         .from("tutor_profiles")
         .update({
@@ -277,22 +296,12 @@ const TutorSetup = () => {
           grade_levels: form.gradeLevels,
           teaching_method: form.teachingMethod,
           teaching_radius: form.teachingRadius,
+          latitude: geoLat,
+          longitude: geoLng,
+          city: geoCity,
         } as any)
         .eq("user_id", user.id);
       if (tutorErr) throw tutorErr;
-
-      // Capture geolocation
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-          await supabase
-            .from("profiles")
-            .update({
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-            } as any)
-            .eq("user_id", user.id);
-        }, () => {});
-      }
 
       await supabase.from("tutor_availability").delete().eq("tutor_id", user.id);
       if (form.availability.length > 0) {

@@ -33,12 +33,13 @@ interface TutorResult {
   grade_levels: string[] | null;
   teaching_method: string | null;
   teaching_radius: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  city: string | null;
   profiles: {
     full_name: string;
     avatar_url: string | null;
     bio: string | null;
-    latitude: number | null;
-    longitude: number | null;
   } | null;
   distance?: number;
   available_days?: string[];
@@ -55,6 +56,14 @@ const budgetOptions = [
   { value: "500", label: "Under ₹500/hr" },
   { value: "800", label: "Under ₹800/hr" },
   { value: "1000", label: "Under ₹1000/hr" },
+];
+
+const radiusOptions = [
+  { value: "0", label: "Any Distance" },
+  { value: "5", label: "Within 5 km" },
+  { value: "10", label: "Within 10 km" },
+  { value: "20", label: "Within 20 km" },
+  { value: "50", label: "Within 50 km" },
 ];
 
 const GRADE_LEVELS = [
@@ -83,8 +92,8 @@ const FindTutors = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [sortByDistance, setSortByDistance] = useState(false);
+  const [searchCoords, setSearchCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [subjectFilter, setSubjectFilter] = useState(searchParams.get("subject") || "");
@@ -93,6 +102,7 @@ const FindTutors = () => {
   const [budgetFilter, setBudgetFilter] = useState(searchParams.get("budget") || "0");
   const [gradeFilter, setGradeFilter] = useState(searchParams.get("grade") || "");
   const [dayFilter, setDayFilter] = useState(searchParams.get("day") || "");
+  const [radiusFilter, setRadiusFilter] = useState(searchParams.get("radius") || "0");
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -102,20 +112,46 @@ const FindTutors = () => {
     fetchSubjects();
   }, []);
 
+  // Geocode location input
+  const debouncedLocation = useDebounce(locationFilter, 400);
+
+  useEffect(() => {
+    if (!debouncedLocation) {
+      setSearchCoords(null);
+      return;
+    }
+    const geocode = async () => {
+      setGeocoding(true);
+      try {
+        const { data } = await supabase.functions.invoke('geocode-location', {
+          body: { address: debouncedLocation },
+        });
+        if (data && data.lat) {
+          setSearchCoords({ lat: data.lat, lng: data.lng });
+        } else {
+          setSearchCoords(null);
+        }
+      } catch {
+        setSearchCoords(null);
+      }
+      setGeocoding(false);
+    };
+    geocode();
+  }, [debouncedLocation]);
+
+  // Detect user's GPS location
   const detectLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setSortByDistance(true);
+          setSearchCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setLocationFilter("My Location");
+          if (radiusFilter === "0") setRadiusFilter("20");
         },
         () => {}
       );
     }
   };
-
-  // Debounce location filter to avoid firing query on every keystroke
-  const debouncedLocation = useDebounce(locationFilter, 400);
 
   useEffect(() => {
     const fetchTutors = async () => {
@@ -123,7 +159,7 @@ const FindTutors = () => {
 
       let query = supabase
         .from("tutor_profiles")
-        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius, trust_score, profiles!inner(full_name, avatar_url, bio, latitude, longitude)")
+        .select("user_id, subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius, trust_score, latitude, longitude, city, profiles!inner(full_name, avatar_url, bio)")
         .eq("is_verified", true)
         .order("trust_score", { ascending: false, nullsFirst: false });
 
@@ -140,8 +176,9 @@ const FindTutors = () => {
       if (subjectFilter) {
         query = query.or(`subject.ilike.%${subjectFilter}%,subjects.cs.{${subjectFilter}}`);
       }
-      if (debouncedLocation) {
-        query = query.ilike("location", `%${debouncedLocation}%`);
+      // Only use text-based location filter if we don't have geocoded coordinates
+      if (debouncedLocation && !searchCoords) {
+        query = query.or(`location.ilike.%${debouncedLocation}%,city.ilike.%${debouncedLocation}%`);
       }
       if (ratingFilter && ratingFilter !== "0") {
         query = query.gte("rating", parseFloat(ratingFilter));
@@ -163,21 +200,34 @@ const FindTutors = () => {
           results = results.filter((t) => availableTutorIds!.includes(t.user_id));
         }
 
-        // Calculate distances if user location available
-        if (userLocation && sortByDistance) {
+        // Calculate distances & filter by radius when we have search coordinates
+        const radiusKm = parseFloat(radiusFilter);
+        if (searchCoords) {
           results = results.map((t) => {
-            const lat = (t.profiles as any)?.latitude;
-            const lng = (t.profiles as any)?.longitude;
-            if (lat && lng) {
-              return { ...t, distance: haversineDistance(userLocation.lat, userLocation.lng, lat, lng) };
+            if (t.latitude && t.longitude) {
+              return { ...t, distance: haversineDistance(searchCoords.lat, searchCoords.lng, t.latitude, t.longitude) };
             }
             return { ...t, distance: undefined };
           });
+
+          // Apply radius filter
+          if (radiusKm > 0) {
+            results = results.filter((t) => t.distance !== undefined && t.distance <= radiusKm);
+          }
+
+          // Sort by distance first, then rating, then experience
           results.sort((a, b) => {
-            if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance;
-            if (a.distance !== undefined) return -1;
-            if (b.distance !== undefined) return 1;
-            return 0;
+            if (a.distance !== undefined && b.distance !== undefined) {
+              if (Math.abs(a.distance - b.distance) > 0.5) return a.distance - b.distance;
+            }
+            if (a.distance !== undefined && b.distance === undefined) return -1;
+            if (a.distance === undefined && b.distance !== undefined) return 1;
+            // Secondary: rating
+            const ra = a.rating || 0;
+            const rb = b.rating || 0;
+            if (ra !== rb) return rb - ra;
+            // Tertiary: experience
+            return (b.experience_years || 0) - (a.experience_years || 0);
           });
         }
 
@@ -187,7 +237,7 @@ const FindTutors = () => {
     };
 
     fetchTutors();
-  }, [subjectFilter, debouncedLocation, ratingFilter, budgetFilter, gradeFilter, dayFilter, userLocation, sortByDistance]);
+  }, [subjectFilter, debouncedLocation, ratingFilter, budgetFilter, gradeFilter, dayFilter, searchCoords, radiusFilter]);
 
   const handleSearch = () => {
     const params: Record<string, string> = {};
@@ -197,6 +247,7 @@ const FindTutors = () => {
     if (budgetFilter !== "0") params.budget = budgetFilter;
     if (gradeFilter) params.grade = gradeFilter;
     if (dayFilter) params.day = dayFilter;
+    if (radiusFilter !== "0") params.radius = radiusFilter;
     setSearchParams(params);
   };
 
@@ -207,11 +258,12 @@ const FindTutors = () => {
     setBudgetFilter("0");
     setGradeFilter("");
     setDayFilter("");
-    setSortByDistance(false);
+    setRadiusFilter("0");
+    setSearchCoords(null);
     setSearchParams({});
   };
 
-  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0" || gradeFilter || dayFilter || sortByDistance;
+  const hasActiveFilters = subjectFilter || locationFilter || ratingFilter !== "0" || budgetFilter !== "0" || gradeFilter || dayFilter || radiusFilter !== "0";
 
   return (
     <div className="min-h-screen bg-background">
@@ -256,7 +308,33 @@ const FindTutors = () => {
 
             <div className="flex-1 min-w-[150px] space-y-1">
               <label className="text-xs font-medium text-muted-foreground">Location</label>
-              <Input placeholder="e.g. Delhi, Mumbai..." value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} />
+              <div className="relative">
+                <Input
+                  placeholder="e.g. South Delhi, Mumbai..."
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                />
+                {geocoding && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                )}
+              </div>
+              {searchCoords && locationFilter && locationFilter !== "My Location" && (
+                <p className="text-xs text-primary">📍 Location found — showing nearby tutors</p>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-[130px] space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Distance</label>
+              <Select value={radiusFilter} onValueChange={setRadiusFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {radiusOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex-1 min-w-[150px] space-y-1">
@@ -316,6 +394,17 @@ const FindTutors = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Distance</label>
+                    <Select value={radiusFilter} onValueChange={setRadiusFilter}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {radiusOptions.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="flex gap-2 pt-2">
                     <Button className="flex-1" onClick={() => { handleSearch(); setMobileFiltersOpen(false); }}>
                       Apply Filters
@@ -368,7 +457,7 @@ const FindTutors = () => {
               <Button onClick={handleSearch} className="gap-2">
                 <Search className="h-4 w-4" /> Search
               </Button>
-              <Button variant="outline" size="icon" onClick={detectLocation} aria-label="Sort by distance from your location">
+              <Button variant="outline" size="icon" onClick={detectLocation} aria-label="Use my GPS location">
                 <Navigation className="h-4 w-4" />
               </Button>
               {hasActiveFilters && (
@@ -380,10 +469,14 @@ const FindTutors = () => {
           </div>
         </ScrollReveal>
 
-        {sortByDistance && userLocation && (
+        {searchCoords && (
           <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
             <Navigation className="h-4 w-4 text-primary" />
-            <span>Sorted by distance from your location</span>
+            <span>
+              {radiusFilter !== "0"
+                ? `Showing tutors within ${radiusFilter} km${locationFilter === "My Location" ? " of your location" : ` of "${locationFilter}"`}`
+                : `Sorted by distance${locationFilter === "My Location" ? " from your location" : ` from "${locationFilter}"`}`}
+            </span>
           </div>
         )}
 
@@ -399,7 +492,7 @@ const FindTutors = () => {
               <Search className="mx-auto h-12 w-12 text-muted-foreground/30" />
               <h2 className="mt-4 font-display text-xl font-semibold text-foreground">No tutors found</h2>
               <p className="mt-2 text-muted-foreground">
-                {hasActiveFilters ? "Try adjusting your filters to see more results." : "No tutors have registered yet. Be the first!"}
+                {hasActiveFilters ? "Try adjusting your filters or increasing the distance radius." : "No tutors have registered yet. Be the first!"}
               </p>
               {hasActiveFilters && (
                 <Button variant="outline" className="mt-4" onClick={clearFilters}>Clear Filters</Button>
@@ -453,7 +546,9 @@ const FindTutors = () => {
                             <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-accent text-accent" /> {t.rating}</span>
                           )}
                           {t.distance !== undefined && (
-                            <span className="flex items-center gap-1"><Navigation className="h-3.5 w-3.5" /> {t.distance.toFixed(1)} km</span>
+                            <span className="flex items-center gap-1 text-primary font-medium">
+                              <Navigation className="h-3.5 w-3.5" /> {t.distance < 1 ? `${Math.round(t.distance * 1000)}m` : `${t.distance.toFixed(1)} km`}
+                            </span>
                           )}
                         </div>
 
