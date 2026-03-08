@@ -63,14 +63,18 @@ const SignUp = () => {
     if (error) {
       toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
     } else {
-      // Save preferred subjects and geolocation for students
-      if (role === "student" && signUpData.user) {
-        // We'll update after profile is created by trigger
+      // Save phone, preferred subjects and geolocation
+      if (signUpData.user) {
         setTimeout(async () => {
-          if (preferredSubjects.length > 0) {
+          const updates: Record<string, any> = {};
+          if (phone.trim()) updates.phone = phone.trim();
+          if (role === "student" && preferredSubjects.length > 0) {
+            updates.preferred_subjects = preferredSubjects;
+          }
+          if (Object.keys(updates).length > 0) {
             await supabase
               .from("profiles")
-              .update({ preferred_subjects: preferredSubjects } as any)
+              .update(updates as any)
               .eq("user_id", signUpData.user!.id);
           }
           // Capture geolocation

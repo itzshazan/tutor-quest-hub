@@ -20,7 +20,7 @@ const HowItWorks = () => {
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.15}>
+        <StaggerContainer className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" staggerDelay={0.15}>
           {steps.map((s, i) => (
             <StaggerItem key={s.title} variant="scaleIn">
               <div className="relative text-center">
