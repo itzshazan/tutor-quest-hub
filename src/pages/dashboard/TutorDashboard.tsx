@@ -106,11 +106,26 @@ const TutorDashboard = () => {
     }
     setReviews((revData || []).map((r) => ({ ...r, student_name: revMap[r.student_id] || "Student" })));
 
+    // Earnings
+    const { data: completedPayments } = await supabase
+      .from("payments")
+      .select("tutor_earnings, payment_status")
+      .eq("tutor_id", uid);
+
+    const totalEarnings = (completedPayments || [])
+      .filter((p) => p.payment_status === "completed")
+      .reduce((sum, p) => sum + Number(p.tutor_earnings), 0);
+    const pendingEarnings = (completedPayments || [])
+      .filter((p) => p.payment_status === "pending")
+      .reduce((sum, p) => sum + Number(p.tutor_earnings), 0);
+
     setStats({
       students: studentIds.length,
       completed: completedCount,
       rating: Number(tp?.rating) || 0,
       totalReviews: tp?.total_reviews || 0,
+      totalEarnings,
+      pendingEarnings,
     });
     setLoading(false);
   };
