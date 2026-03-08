@@ -80,9 +80,10 @@ const FindTutors = () => {
   const [tutors, setTutors] = useState<TutorResult[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [sortByDistance, setSortByDistance] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [subjectFilter, setSubjectFilter] = useState(searchParams.get("subject") || "");
   const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
