@@ -114,17 +114,20 @@ const HeroSection = () => {
             </motion.div>
           </div>
 
-          {/* Right: 3D Illustration */}
+          {/* Right: 3D Illustration with floating effect */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, x: 40 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
             className="hidden lg:flex items-center justify-center"
           >
-            <img
+            <motion.img
               src={heroIllustration}
               alt="Tutor teaching a student - 3D illustration"
               className="w-full max-w-md drop-shadow-2xl"
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              whileHover={{ scale: 1.05, rotate: 1 }}
             />
           </motion.div>
         </div>

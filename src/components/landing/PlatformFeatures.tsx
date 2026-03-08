@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 import featureLocation from "@/assets/feature-location.png";
@@ -27,15 +28,21 @@ const PlatformFeatures = () => {
         <StaggerContainer className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
           {features.map((f) => (
             <StaggerItem key={f.title}>
-              <Card className="border-0 shadow-neumorphic hover:shadow-elevated group">
-                <CardContent className="p-8 text-center">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                    <img src={f.image} alt={f.title} className="h-full w-full object-contain" />
-                  </div>
-                  <h3 className="mt-5 font-bold text-foreground">{f.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
-                </CardContent>
-              </Card>
+              <motion.div whileHover={{ y: -6, scale: 1.02 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+                <Card className="border-0 shadow-neumorphic hover:shadow-elevated group cursor-pointer">
+                  <CardContent className="p-8 text-center">
+                    <motion.div
+                      className="mx-auto flex h-20 w-20 items-center justify-center"
+                      whileHover={{ rotate: [0, -5, 5, 0], scale: 1.15 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <img src={f.image} alt={f.title} className="h-full w-full object-contain" />
+                    </motion.div>
+                    <h3 className="mt-5 font-bold text-foreground">{f.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </StaggerItem>
           ))}
         </StaggerContainer>
