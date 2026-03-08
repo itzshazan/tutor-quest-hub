@@ -57,11 +57,17 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="border-t bg-background px-6 pb-6 pt-4 md:hidden">
           <div className="flex flex-col gap-4">
-            {navLinks.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                {l.label}
-              </a>
-            ))}
+            {navLinks.map((l) =>
+              'isRoute' in l && l.isRoute ? (
+                <Link key={l.href} to={l.href} onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                  {l.label}
+                </Link>
+              ) : (
+                <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                  {l.label}
+                </a>
+              )
+            )}
             <div className="flex gap-3 pt-2">
               {user ? (
                 <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => { signOut(); setMobileOpen(false); }}>
