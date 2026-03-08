@@ -10,6 +10,7 @@ import SignUp from "./pages/SignUp";
 import TutorProfile from "./pages/TutorProfile";
 import FindTutors from "./pages/FindTutors";
 import TutorSetup from "./pages/TutorSetup";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
