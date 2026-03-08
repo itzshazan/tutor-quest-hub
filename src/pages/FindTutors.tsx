@@ -139,8 +139,8 @@ const FindTutors = () => {
       if (subjectFilter) {
         query = query.or(`subject.ilike.%${subjectFilter}%,subjects.cs.{${subjectFilter}}`);
       }
-      if (locationFilter) {
-        query = query.ilike("location", `%${locationFilter}%`);
+      if (debouncedLocation) {
+        query = query.ilike("location", `%${debouncedLocation}%`);
       }
       if (ratingFilter && ratingFilter !== "0") {
         query = query.gte("rating", parseFloat(ratingFilter));
