@@ -96,6 +96,9 @@ function AnimatedRoutes() {
           <Route path="/admin/reviews" element={
             <RoleGuard allowedRole="admin"><AdminReviews /></RoleGuard>
           } />
+          <Route path="/admin/revenue" element={
+            <RoleGuard allowedRole="admin"><AdminRevenue /></RoleGuard>
+          } />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
