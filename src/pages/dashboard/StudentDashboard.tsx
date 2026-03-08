@@ -37,6 +37,7 @@ interface ConvoRow {
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-accent/20 text-accent-foreground",
   confirmed: "bg-secondary/20 text-secondary",
+  payment_pending: "bg-primary/20 text-primary",
   completed: "bg-muted text-muted-foreground",
   cancelled: "bg-destructive/20 text-destructive",
   declined: "bg-destructive/20 text-destructive",
