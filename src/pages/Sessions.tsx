@@ -18,7 +18,7 @@ import {
   GraduationCap, CalendarIcon, Clock, Plus, Check, X as XIcon,
   ArrowLeft, Loader2, BookOpen, MapPin,
 } from "lucide-react";
-import { format, isPast, startOfDay } from "date-fns";
+import { format, startOfDay, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const TIME_OPTIONS = [
