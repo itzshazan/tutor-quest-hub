@@ -238,6 +238,8 @@ const TutorSetup = () => {
           hourly_rate: form.hourlyRate,
           location: form.location,
           grade_levels: form.gradeLevels,
+          teaching_method: form.teachingMethod,
+          teaching_radius: form.teachingRadius,
         } as any)
         .eq("user_id", user.id);
       if (tutorErr) throw tutorErr;
