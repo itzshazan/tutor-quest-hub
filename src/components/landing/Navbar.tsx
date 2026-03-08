@@ -9,7 +9,7 @@ const navLinks = [
   { label: "Find Tutors", href: "/find-tutors", isRoute: true },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Become a Tutor", href: "#become-tutor" },
-];
+] as const;
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
