@@ -27,6 +27,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminTutors from "./pages/admin/AdminTutors";
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminReviews from "./pages/admin/AdminReviews";
+import AdminRevenue from "./pages/admin/AdminRevenue";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,9 @@ function AnimatedRoutes() {
           } />
           <Route path="/admin/reviews" element={
             <RoleGuard allowedRole="admin"><AdminReviews /></RoleGuard>
+          } />
+          <Route path="/admin/revenue" element={
+            <RoleGuard allowedRole="admin"><AdminRevenue /></RoleGuard>
           } />
 
           <Route path="*" element={<NotFound />} />

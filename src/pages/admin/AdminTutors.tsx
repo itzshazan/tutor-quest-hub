@@ -6,15 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, FileText, Eye, Flag, ShieldCheck } from "lucide-react";
+import { CheckCircle, XCircle, FileText, Eye, Flag, ShieldCheck, CheckCheck, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { exportToCSV } from "@/lib/exportUtils";
+import { format } from "date-fns";
 
 interface TutorRow {
   id: string;
@@ -59,6 +62,7 @@ export default function AdminTutors() {
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const loadData = async () => {
@@ -138,6 +142,68 @@ export default function AdminTutors() {
     }
   };
 
+  const bulkUpdateDocStatus = async (status: string) => {
+    if (selectedDocIds.size === 0) return;
+    const ids = Array.from(selectedDocIds);
+    const { error } = await supabase
+      .from("tutor_verifications")
+      .update({ status, reviewed_at: new Date().toISOString() } as any)
+      .in("id", ids);
+
+    if (error) {
+      toast({ title: "Bulk update failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${ids.length} documents ${status}` });
+      setSelectedDocIds(new Set());
+      loadData();
+    }
+  };
+
+  const toggleDocSelection = (docId: string) => {
+    setSelectedDocIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(docId)) {
+        newSet.delete(docId);
+      } else {
+        newSet.add(docId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllPendingDocs = () => {
+    const pendingIds = docs.filter((d) => d.status === "pending").map((d) => d.id);
+    if (pendingIds.every((id) => selectedDocIds.has(id))) {
+      setSelectedDocIds(new Set());
+    } else {
+      setSelectedDocIds(new Set(pendingIds));
+    }
+  };
+
+  const handleExportTutors = () => {
+    exportToCSV(
+      tutors.map((t) => ({
+        name: t.tutor_name || "Unknown",
+        subjects: t.subjects?.join(", ") || t.subject || "",
+        hourly_rate: t.hourly_rate || 0,
+        rating: t.rating || 0,
+        reviews: t.total_reviews || 0,
+        trust_score: t.trust_score || 0,
+        verified: t.is_verified ? "Yes" : "No",
+      })),
+      `tutors-export-${format(new Date(), "yyyy-MM-dd")}`,
+      [
+        { key: "name", label: "Name" },
+        { key: "subjects", label: "Subjects" },
+        { key: "hourly_rate", label: "Rate (₹/hr)" },
+        { key: "rating", label: "Rating" },
+        { key: "reviews", label: "Reviews" },
+        { key: "trust_score", label: "Trust Score" },
+        { key: "verified", label: "Verified" },
+      ]
+    );
+  };
+
   const updateReportStatus = async (reportId: string, status: string) => {
     const notes = adminNotes[reportId] || null;
     const { error } = await supabase
@@ -200,6 +266,12 @@ export default function AdminTutors() {
 
         <TabsContent value="tutors">
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between py-3">
+              <CardTitle className="text-lg">All Tutors</CardTitle>
+              <Button variant="outline" size="sm" onClick={handleExportTutors} className="gap-1.5">
+                <Download className="h-4 w-4" /> Export
+              </Button>
+            </CardHeader>
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex justify-center py-12">
@@ -234,7 +306,7 @@ export default function AdminTutors() {
                         </TableCell>
                         <TableCell>
                           {t.is_verified ? (
-                            <Badge className="bg-green-100 text-green-800">Verified</Badge>
+                            <Badge className="bg-primary/20 text-primary">Verified</Badge>
                           ) : (
                             <Badge variant="secondary">Unverified</Badge>
                           )}
@@ -266,13 +338,31 @@ export default function AdminTutors() {
 
         <TabsContent value="verifications">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Verification Documents</CardTitle>
+              {selectedDocIds.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{selectedDocIds.size} selected</span>
+                  <Button size="sm" className="gap-1" onClick={() => bulkUpdateDocStatus("approved")}>
+                    <CheckCheck className="h-3 w-3" /> Bulk Approve
+                  </Button>
+                  <Button size="sm" variant="destructive" className="gap-1" onClick={() => bulkUpdateDocStatus("rejected")}>
+                    <XCircle className="h-3 w-3" /> Bulk Reject
+                  </Button>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={pendingDocs.length > 0 && pendingDocs.every((d) => selectedDocIds.has(d.id))}
+                        onCheckedChange={toggleAllPendingDocs}
+                        aria-label="Select all pending"
+                      />
+                    </TableHead>
                     <TableHead>Tutor</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
@@ -283,6 +373,15 @@ export default function AdminTutors() {
                 <TableBody>
                   {docs.map((d) => (
                     <TableRow key={d.id}>
+                      <TableCell>
+                        {d.status === "pending" && (
+                          <Checkbox
+                            checked={selectedDocIds.has(d.id)}
+                            onCheckedChange={() => toggleDocSelection(d.id)}
+                            aria-label={`Select ${d.document_type}`}
+                          />
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{d.tutor_name}</TableCell>
                       <TableCell>
                         <span className="flex items-center gap-1"><FileText className="h-3 w-3" /> {d.document_type}</span>

@@ -73,6 +73,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -147,6 +180,7 @@ export type Database = {
           phone: string | null
           preferred_subjects: string[] | null
           role: Database["public"]["Enums"]["app_role"]
+          suspended_at: string | null
           updated_at: string
           user_id: string
         }
@@ -161,6 +195,7 @@ export type Database = {
           phone?: string | null
           preferred_subjects?: string[] | null
           role?: Database["public"]["Enums"]["app_role"]
+          suspended_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -175,6 +210,7 @@ export type Database = {
           phone?: string | null
           preferred_subjects?: string[] | null
           role?: Database["public"]["Enums"]["app_role"]
+          suspended_at?: string | null
           updated_at?: string
           user_id?: string
         }

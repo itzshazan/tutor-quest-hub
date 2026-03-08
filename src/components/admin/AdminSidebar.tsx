@@ -5,6 +5,7 @@ import {
   CalendarDays,
   MessageSquare,
   Shield,
+  IndianRupee,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -26,6 +27,7 @@ const items = [
   { title: "Tutors", url: "/admin/tutors", icon: GraduationCap },
   { title: "Sessions", url: "/admin/sessions", icon: CalendarDays },
   { title: "Reviews", url: "/admin/reviews", icon: MessageSquare },
+  { title: "Revenue", url: "/admin/revenue", icon: IndianRupee },
 ];
 
 export function AdminSidebar() {
