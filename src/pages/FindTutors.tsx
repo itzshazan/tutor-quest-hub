@@ -141,6 +141,11 @@ const FindTutors = () => {
       if (!error && data) {
         let results = data as unknown as TutorResult[];
 
+        // Filter by availability day
+        if (availableTutorIds !== null) {
+          results = results.filter((t) => availableTutorIds!.includes(t.user_id));
+        }
+
         // Calculate distances if user location available
         if (userLocation && sortByDistance) {
           results = results.map((t) => {
@@ -165,7 +170,7 @@ const FindTutors = () => {
     };
 
     fetchTutors();
-  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter, gradeFilter, userLocation, sortByDistance]);
+  }, [subjectFilter, locationFilter, ratingFilter, budgetFilter, gradeFilter, dayFilter, userLocation, sortByDistance]);
 
   const handleSearch = () => {
     const params: Record<string, string> = {};
