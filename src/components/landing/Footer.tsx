@@ -1,5 +1,6 @@
 import { GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 const footerLinks = {
   Product: [
@@ -30,43 +31,45 @@ const Footer = () => {
   return (
     <footer className="border-t bg-card">
       <div className="container py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
-          {/* Brand - takes 2 columns */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <GraduationCap className="h-5 w-5 text-primary-foreground" />
+        <ScrollReveal variant="fadeUp">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
+            {/* Brand */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                  <GraduationCap className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <span className="text-lg font-bold text-foreground">Tutor Quest</span>
               </div>
-              <span className="text-lg font-bold text-foreground">Tutor Quest</span>
+              <p className="mt-4 max-w-xs text-body-sm text-muted-foreground leading-relaxed">
+                Connecting students with trusted local tutors for personalized,
+                high-quality learning experiences.
+              </p>
             </div>
-            <p className="mt-4 max-w-xs text-body-sm text-muted-foreground leading-relaxed">
-              Connecting students with trusted local tutors for personalized,
-              high-quality learning experiences.
-            </p>
-          </div>
 
-          {/* Link Columns */}
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="text-body-sm font-semibold text-foreground">{title}</h4>
-              <ul className="mt-4 space-y-3">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    {"isRoute" in link && link.isRoute ? (
-                      <Link to={link.href} className="text-body-sm text-muted-foreground transition-colors hover:text-foreground">
-                        {link.label}
-                      </Link>
-                    ) : (
-                      <a href={link.href} className="text-body-sm text-muted-foreground transition-colors hover:text-foreground">
-                        {link.label}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+            {/* Link Columns */}
+            {Object.entries(footerLinks).map(([title, links]) => (
+              <div key={title}>
+                <h4 className="text-body-sm font-semibold text-foreground">{title}</h4>
+                <ul className="mt-4 space-y-3">
+                  {links.map((link) => (
+                    <li key={link.label}>
+                      {"isRoute" in link && link.isRoute ? (
+                        <Link to={link.href} className="nav-link-underline text-body-sm text-muted-foreground transition-colors hover:text-foreground">
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <a href={link.href} className="nav-link-underline text-body-sm text-muted-foreground transition-colors hover:text-foreground">
+                          {link.label}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </ScrollReveal>
       </div>
 
       {/* Bottom bar */}
@@ -76,9 +79,9 @@ const Footer = () => {
             © {new Date().getFullYear()} Tutor Quest. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Twitter</a>
-            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">LinkedIn</a>
-            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Instagram</a>
+            <a href="#" className="nav-link-underline text-xs text-muted-foreground hover:text-foreground transition-colors">Twitter</a>
+            <a href="#" className="nav-link-underline text-xs text-muted-foreground hover:text-foreground transition-colors">LinkedIn</a>
+            <a href="#" className="nav-link-underline text-xs text-muted-foreground hover:text-foreground transition-colors">Instagram</a>
           </div>
         </div>
       </div>

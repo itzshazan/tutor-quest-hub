@@ -71,7 +71,7 @@ const Navbar = () => {
               <Link
                 key={l.href}
                 to={l.href}
-                className="text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="nav-link-underline text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 {l.label}
               </Link>
@@ -79,7 +79,7 @@ const Navbar = () => {
               <a
                 key={l.href}
                 href={l.href}
-                className="text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="nav-link-underline text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 {l.label}
               </a>
