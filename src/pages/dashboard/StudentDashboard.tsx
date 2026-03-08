@@ -224,6 +224,9 @@ const StudentDashboard = () => {
           <Button variant="outline" asChild>
             <Link to="/messages"><MessageSquare className="mr-2 h-4 w-4" /> Messages</Link>
           </Button>
+          <Button variant="outline" asChild>
+            <Link to="/settings"><Settings className="mr-2 h-4 w-4" /> Settings</Link>
+          </Button>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
