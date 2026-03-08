@@ -261,9 +261,62 @@ const FindTutors = () => {
               </Select>
             </div>
 
-            <Button variant="outline" className="gap-2 sm:hidden" onClick={() => setShowFilters(!showFilters)}>
-              <SlidersHorizontal className="h-4 w-4" /> More Filters
-            </Button>
+            {/* Mobile filters sheet */}
+            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2 sm:hidden">
+                  <SlidersHorizontal className="h-4 w-4" /> More Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-auto max-h-[70vh]">
+                <SheetHeader>
+                  <SheetTitle>Filter Options</SheetTitle>
+                </SheetHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Budget</label>
+                    <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {budgetOptions.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Rating</label>
+                    <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ratingOptions.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Availability</label>
+                    <Select value={dayFilter} onValueChange={setDayFilter}>
+                      <SelectTrigger><SelectValue placeholder="Any Day" /></SelectTrigger>
+                      <SelectContent>
+                        {DAYS_OF_WEEK.map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button className="flex-1" onClick={() => { handleSearch(); setMobileFiltersOpen(false); }}>
+                      Apply Filters
+                    </Button>
+                    <Button variant="outline" onClick={() => { clearFilters(); setMobileFiltersOpen(false); }}>
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
 
             <div className="hidden flex-1 min-w-[130px] space-y-1 sm:block">
               <label className="text-xs font-medium text-muted-foreground">Budget</label>
