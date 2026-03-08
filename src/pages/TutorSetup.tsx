@@ -621,8 +621,9 @@ const TutorSetup = () => {
 
               <SummarySection title="Location & Availability" onEdit={() => setStep(3)}>
                 <p className="text-sm flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" /> {form.location}
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" /> {form.location} · {form.teachingRadius} km radius
                 </p>
+                <p className="text-xs text-muted-foreground mt-1 capitalize">Teaching method: {form.teachingMethod === "both" ? "Online & Offline" : form.teachingMethod}</p>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {form.availability.map((a, i) => (
                     <Badge key={i} variant="outline" className="text-xs">{a.day.slice(0, 3)} {a.start}–{a.end}</Badge>

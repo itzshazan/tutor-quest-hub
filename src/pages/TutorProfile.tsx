@@ -48,7 +48,7 @@ const TutorProfile = () => {
 
       const { data: tutorProfile } = await supabase
         .from("tutor_profiles")
-        .select("subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels")
+        .select("subject, subjects, experience_years, hourly_rate, location, education, is_verified, rating, total_reviews, grade_levels, teaching_method, teaching_radius")
         .eq("user_id", id)
         .single();
 
