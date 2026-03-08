@@ -6,6 +6,7 @@ import {
   UserCog,
   GraduationCap,
   CreditCard,
+  Wallet,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -34,6 +35,7 @@ const tutorItems = [
   { title: "Dashboard", url: "/dashboard/tutor", icon: LayoutDashboard },
   { title: "Sessions", url: "/sessions", icon: CalendarDays },
   { title: "Messages", url: "/messages", icon: MessageSquare },
+  { title: "Earnings", url: "/earnings", icon: Wallet },
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Edit Profile", url: "/tutor/setup", icon: UserCog },
 ];

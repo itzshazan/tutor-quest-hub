@@ -37,6 +37,9 @@ const AdminTutors = lazy(() => import("./pages/admin/AdminTutors"));
 const AdminSessions = lazy(() => import("./pages/admin/AdminSessions"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TutorEarnings = lazy(() => import("./pages/TutorEarnings"));
 
 const queryClient = new QueryClient();
 
@@ -63,6 +66,8 @@ function AnimatedRoutes() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/find-tutors" element={<FindTutors />} />
             <Route path="/tutor/:id" element={<TutorProfile />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
 
             {/* Protected routes (any authenticated user) */}
             <Route path="/tutor/setup" element={
@@ -79,6 +84,9 @@ function AnimatedRoutes() {
             } />
             <Route path="/settings" element={
               <ProtectedRoute><Settings /></ProtectedRoute>
+            } />
+            <Route path="/earnings" element={
+              <ProtectedRoute><TutorEarnings /></ProtectedRoute>
             } />
 
             {/* Role-specific routes */}

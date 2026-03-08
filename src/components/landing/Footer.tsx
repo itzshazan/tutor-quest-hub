@@ -21,8 +21,8 @@ const footerLinks = {
     { label: "Community", href: "#" },
   ],
   Legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
+    { label: "Privacy Policy", href: "/privacy", isRoute: true },
+    { label: "Terms of Service", href: "/terms", isRoute: true },
     { label: "Cookie Policy", href: "#" },
   ],
 };

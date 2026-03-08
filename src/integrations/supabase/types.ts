@@ -38,6 +38,63 @@ export type Database = {
         }
         Relationships: []
       }
+      disputes: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string | null
+          id: string
+          payment_id: string | null
+          raised_by: string
+          reason: string
+          resolution: string | null
+          resolved_at: string | null
+          session_id: string | null
+          status: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          payment_id?: string | null
+          raised_by: string
+          reason: string
+          resolution?: string | null
+          resolved_at?: string | null
+          session_id?: string | null
+          status?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          payment_id?: string | null
+          raised_by?: string
+          reason?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          session_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -511,6 +568,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          id: string
+          payout_method: string | null
+          processed_at: string | null
+          requested_at: string
+          status: string
+          tutor_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          payout_method?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          tutor_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          payout_method?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          tutor_id?: string
         }
         Relationships: []
       }
