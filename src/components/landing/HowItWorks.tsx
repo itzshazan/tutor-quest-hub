@@ -1,5 +1,7 @@
 import { Search, Users, MessageCircle, CalendarCheck } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 const steps = [
   { icon: Search, title: "Search", desc: "Enter your subject and location to find nearby qualified tutors." },
@@ -9,8 +11,29 @@ const steps = [
 ];
 
 const HowItWorks = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const dotY = useTransform(scrollYProgress, [0, 1], ["0px", "-30px"]);
+
   return (
-    <section id="how-it-works" className="py-24 md:py-32">
+    <section ref={sectionRef} id="how-it-works" className="relative overflow-hidden py-24 md:py-32">
+      {/* Animated dot grid */}
+      <motion.div
+        className="pointer-events-none absolute inset-0"
+        style={{ y: dotY }}
+        aria-hidden="true"
+      >
+        <div
+          className="absolute inset-0 opacity-[0.35] dark:opacity-[0.15]"
+          style={{
+            backgroundImage: `radial-gradient(circle, hsl(var(--primary) / 0.25) 1px, transparent 1px)`,
+            backgroundSize: "28px 28px",
+          }}
+        />
+        {/* Fade edges */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background" />
+      </motion.div>
       <div className="container">
         <ScrollReveal variant="zoomRotate">
           <div className="mx-auto max-w-2xl text-center">
