@@ -297,18 +297,30 @@ const StudentDashboard = () => {
               ) : sessions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No upcoming sessions. <Link to="/find-tutors" className="text-primary hover:underline">Find a tutor</Link> to get started!</p>
               ) : (
-                sessions.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-1">
-                      <p className="font-medium text-foreground">{s.subject}</p>
-                      <p className="text-sm text-muted-foreground">with {s.tutor_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(s.session_date), "MMM d, yyyy")} · {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
-                      </p>
+                sessions.map((s) => {
+                  const statusDisplay = getStatusDisplay(s);
+                  const needsPayment = s.status === "confirmed" && (!s.payment_status || s.payment_status === "failed");
+                  return (
+                    <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">{s.subject}</p>
+                        <p className="text-sm text-muted-foreground">with {s.tutor_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(s.session_date), "MMM d, yyyy")} · {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {needsPayment && (
+                          <Button size="sm" className="h-7 gap-1 text-xs" onClick={() => handlePay(s.id)} disabled={payingSessionId === s.id}>
+                            {payingSessionId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}
+                            Pay Now
+                          </Button>
+                        )}
+                        <Badge className={statusDisplay.color}>{statusDisplay.label}</Badge>
+                      </div>
                     </div>
-                    <Badge className={STATUS_COLORS[s.status] || ""}>{s.status}</Badge>
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
