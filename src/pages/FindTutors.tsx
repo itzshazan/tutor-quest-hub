@@ -434,7 +434,9 @@ const FindTutors = () => {
                           <Button size="sm" className="flex-1" asChild>
                             <Link to={`/tutor/${t.user_id}`}>View Profile</Link>
                           </Button>
-                          <Button size="sm" variant="outline" className="flex-1">Contact</Button>
+                          <Button size="sm" variant="outline" className="flex-1" asChild>
+                            <Link to={`/messages?tutor=${t.user_id}`}>Contact</Link>
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
