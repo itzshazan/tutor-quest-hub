@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import {
   GraduationCap, CalendarIcon, Clock, Plus, Check, X as XIcon,
-  ArrowLeft, Loader2, BookOpen, MapPin,
+  ArrowLeft, Loader2, BookOpen, MapPin, CreditCard, IndianRupee,
 } from "lucide-react";
 import { format, startOfDay, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
