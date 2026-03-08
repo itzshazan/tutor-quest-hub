@@ -389,57 +389,90 @@ const Sessions = () => {
           </Card>
         )}
 
-        {/* Sessions List */}
-        <Tabs defaultValue="upcoming">
-          <TabsList className="mb-4">
-            <TabsTrigger value="upcoming">
-              Upcoming {upcoming.length > 0 && `(${upcoming.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="past">
-              Past {past.length > 0 && `(${past.length})`}
-            </TabsTrigger>
-          </TabsList>
+        {/* Sessions View Toggle */}
+        <Tabs defaultValue="list">
+          <div className="mb-4 flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="list" className="gap-1.5">
+                <List className="h-4 w-4" />
+                List
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="gap-1.5">
+                <LayoutGrid className="h-4 w-4" />
+                Calendar
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="upcoming">
-            {loadingSessions ? (
-              <div className="space-y-3">
-                {[1, 2].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
-              </div>
-            ) : upcoming.length === 0 ? (
-              <div className="flex flex-col items-center py-16 text-center">
-                <CalendarIcon className="h-12 w-12 text-muted-foreground/30" />
-                <p className="mt-4 font-medium text-muted-foreground">No upcoming sessions</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {userRole === "student" ? "Find a tutor to book your first session!" : "Sessions will appear here when students book with you."}
-                </p>
-                {userRole === "student" && (
-                  <Button size="sm" asChild className="mt-4">
-                    <Link to="/find-tutors">Find Tutors</Link>
-                  </Button>
+          <TabsContent value="list">
+            {/* Sessions List */}
+            <Tabs defaultValue="upcoming">
+              <TabsList className="mb-4">
+                <TabsTrigger value="upcoming">
+                  Upcoming {upcoming.length > 0 && `(${upcoming.length})`}
+                </TabsTrigger>
+                <TabsTrigger value="past">
+                  Past {past.length > 0 && `(${past.length})`}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="upcoming">
+                {loadingSessions ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+                  </div>
+                ) : upcoming.length === 0 ? (
+                  <div className="flex flex-col items-center py-16 text-center">
+                    <CalendarIcon className="h-12 w-12 text-muted-foreground/30" />
+                    <p className="mt-4 font-medium text-muted-foreground">No upcoming sessions</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {userRole === "student" ? "Find a tutor to book your first session!" : "Sessions will appear here when students book with you."}
+                    </p>
+                    {userRole === "student" && (
+                      <Button size="sm" asChild className="mt-4">
+                        <Link to="/find-tutors">Find Tutors</Link>
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {upcoming.map((s) => (
+                      <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} />
+                    ))}
+                  </div>
                 )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {upcoming.map((s) => (
-                  <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} />
-                ))}
-              </div>
-            )}
+              </TabsContent>
+
+              <TabsContent value="past">
+                {past.length === 0 ? (
+                  <div className="flex flex-col items-center py-16 text-center">
+                    <Clock className="h-12 w-12 text-muted-foreground/30" />
+                    <p className="mt-4 font-medium text-muted-foreground">No past sessions</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {past.map((s) => (
+                      <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="past">
-            {past.length === 0 ? (
-              <div className="flex flex-col items-center py-16 text-center">
-                <Clock className="h-12 w-12 text-muted-foreground/30" />
-                <p className="mt-4 font-medium text-muted-foreground">No past sessions</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {past.map((s) => (
-                  <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} />
-                ))}
-              </div>
-            )}
+          <TabsContent value="calendar">
+            <Card>
+              <CardContent className="p-6">
+                <SessionCalendar 
+                  sessions={sessions.map(s => ({
+                    ...s,
+                    other_user: s.other_user || undefined,
+                  }))} 
+                  onDateSelect={(date) => console.log("Selected:", date)}
+                  selectedDate={new Date()}
+                />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
