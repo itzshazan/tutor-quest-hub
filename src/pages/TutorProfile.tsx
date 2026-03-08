@@ -181,6 +181,24 @@ const TutorProfile = () => {
                   </div>
                 </div>
               )}
+              <div className="flex items-start gap-3 rounded-lg border p-4">
+                <MapPin className="mt-0.5 h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Teaching Method</p>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {tutor.teaching_method === "both" ? "Online & Offline" : tutor.teaching_method || "Offline"}
+                  </p>
+                </div>
+              </div>
+              {tutor.teaching_radius > 0 && (
+                <div className="flex items-start gap-3 rounded-lg border p-4">
+                  <MapPin className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Teaching Radius</p>
+                    <p className="text-sm text-muted-foreground">{tutor.teaching_radius} km</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Grade Levels */}
