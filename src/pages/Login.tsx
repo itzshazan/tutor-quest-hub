@@ -79,6 +79,12 @@ const Login = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <SEO
+        title="Login"
+        description="Sign in to your Tutor Quest account to connect with tutors, manage sessions, and track your learning progress."
+        url="/login"
+        noIndex
+      />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Link to="/" className="mx-auto mb-4 flex items-center gap-2 font-display text-xl font-bold text-primary">
