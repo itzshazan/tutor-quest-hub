@@ -14,7 +14,23 @@ const navLinks = [
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [incompleteProfile, setIncompleteProfile] = useState(false);
   const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!user || user.user_metadata?.role !== "tutor") {
+      setIncompleteProfile(false);
+      return;
+    }
+    supabase
+      .from("tutor_profiles")
+      .select("hourly_rate")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        setIncompleteProfile(!data?.hourly_rate || data.hourly_rate === 0);
+      });
+  }, [user]);
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
