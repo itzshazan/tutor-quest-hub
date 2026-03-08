@@ -39,10 +39,19 @@ const STATUS_COLORS: Record<string, string> = {
   declined: "bg-destructive/20 text-destructive",
 };
 
+interface SavedTutorRow {
+  tutor_id: string;
+  full_name: string;
+  subject: string;
+  avatar_url: string | null;
+}
+
 const StudentDashboard = () => {
   const { user } = useAuth();
+  const { savedIds, toggle: toggleSave } = useSavedTutors(user?.id);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [conversations, setConversations] = useState<ConvoRow[]>([]);
+  const [savedTutors, setSavedTutors] = useState<SavedTutorRow[]>([]);
   const [stats, setStats] = useState({ total: 0, upcoming: 0, tutors: 0, reviews: 0 });
   const [loading, setLoading] = useState(true);
 
