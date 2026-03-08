@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
@@ -55,11 +56,11 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.6 }}
             className="mt-8 flex flex-wrap justify-center gap-4"
           >
-            <Button size="lg" className="gap-2 px-8">
-              <Search className="h-4 w-4" /> Find Tutors
+            <Button size="lg" className="gap-2 px-8" asChild>
+              <Link to="/find-tutors"><Search className="h-4 w-4" /> Find Tutors</Link>
             </Button>
-            <Button size="lg" variant="outline" className="px-8">
-              Become a Tutor
+            <Button size="lg" variant="outline" className="px-8" asChild>
+              <Link to="/signup">Become a Tutor</Link>
             </Button>
           </motion.div>
         </div>
