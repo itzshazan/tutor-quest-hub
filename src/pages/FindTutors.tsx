@@ -54,6 +54,8 @@ const GRADE_LEVELS = [
   "Undergraduate", "Postgraduate", "Competitive Exams",
 ];
 
+const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
