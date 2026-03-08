@@ -134,13 +134,16 @@ const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <SkipToContent />
         <Toaster />
         <Sonner />
         <OfflineBanner />
         <BrowserRouter>
           <AuthProvider>
             <ErrorBoundary>
-              <AnimatedRoutes />
+              <main id="main-content">
+                <AnimatedRoutes />
+              </main>
             </ErrorBoundary>
           </AuthProvider>
         </BrowserRouter>

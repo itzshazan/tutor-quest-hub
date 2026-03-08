@@ -119,7 +119,7 @@ export default function AdminUsers() {
     // For export, fetch all matching records (up to 1000)
     let query = supabase.from("profiles").select("*");
     if (roleFilter !== "all") {
-      query = query.eq("role", roleFilter);
+      query = query.eq("role", roleFilter as "student" | "tutor" | "admin");
     }
     const { data } = await query.order("created_at", { ascending: false }).limit(1000);
     
