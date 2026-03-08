@@ -157,7 +157,7 @@ const TutorDashboard = () => {
     <DashboardLayout role="tutor">
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/")} aria-label="Go back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>

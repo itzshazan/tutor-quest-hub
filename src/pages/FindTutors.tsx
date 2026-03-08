@@ -362,11 +362,11 @@ const FindTutors = () => {
               <Button onClick={handleSearch} className="gap-2">
                 <Search className="h-4 w-4" /> Search
               </Button>
-              <Button variant="outline" size="icon" onClick={detectLocation} title="Sort by distance">
+              <Button variant="outline" size="icon" onClick={detectLocation} aria-label="Sort by distance from your location">
                 <Navigation className="h-4 w-4" />
               </Button>
               {hasActiveFilters && (
-                <Button variant="ghost" size="icon" onClick={clearFilters} title="Clear filters">
+                <Button variant="ghost" size="icon" onClick={clearFilters} aria-label="Clear filters">
                   <X className="h-4 w-4" />
                 </Button>
               )}

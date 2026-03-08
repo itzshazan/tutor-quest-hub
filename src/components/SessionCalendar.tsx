@@ -73,6 +73,7 @@ export function SessionCalendar({ sessions, onDateSelect, selectedDate }: Sessio
             size="icon"
             className="h-8 w-8"
             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            aria-label="Previous month"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -81,6 +82,7 @@ export function SessionCalendar({ sessions, onDateSelect, selectedDate }: Sessio
             size="icon"
             className="h-8 w-8"
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            aria-label="Next month"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
