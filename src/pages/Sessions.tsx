@@ -466,11 +466,11 @@ const Sessions = () => {
                 <SessionCalendar 
                   sessions={sessions.map(s => ({
                     ...s,
-                    other_user: s.other_user || undefined,
-                  }))} 
-                  onDateSelect={(date) => console.log("Selected:", date)}
-                  selectedDate={new Date()}
-                />
+                  other_user: s.other_user || undefined,
+                }))} 
+                onDateSelect={() => {}}
+                selectedDate={new Date()}
+              />
               </CardContent>
             </Card>
           </TabsContent>

@@ -17,6 +17,7 @@ import {
   GraduationCap, Camera, ArrowRight, ArrowLeft, Check, BookOpen,
   MapPin, Clock, Loader2, X, User, DollarSign, Pencil, Upload, FileText,
 } from "lucide-react";
+import { validateImageFile, validateDocumentFile } from "@/lib/validations";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const TIME_SLOTS = [
@@ -143,10 +144,13 @@ const TutorSetup = () => {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 5 MB", variant: "destructive" });
+    
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast({ title: "Invalid file", description: validation.error, variant: "destructive" });
       return;
     }
+    
     update("avatarFile", file);
     update("avatarPreview", URL.createObjectURL(file));
   };
@@ -155,12 +159,25 @@ const TutorSetup = () => {
 
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const valid = files.filter((f) => f.size <= 10 * 1024 * 1024);
-    if (valid.length < files.length) {
-      toast({ title: "Some files skipped", description: "Max 10 MB per file", variant: "destructive" });
+    const validDocs: VerificationDoc[] = [];
+    const errors: string[] = [];
+    
+    for (const file of files) {
+      const validation = validateDocumentFile(file);
+      if (validation.valid) {
+        validDocs.push({ file, category: docCategory });
+      } else {
+        errors.push(`${file.name}: ${validation.error}`);
+      }
     }
-    const newDocs: VerificationDoc[] = valid.map((f) => ({ file: f, category: docCategory }));
-    update("verificationDocs", [...form.verificationDocs, ...newDocs]);
+    
+    if (errors.length > 0) {
+      toast({ title: "Some files skipped", description: errors.join(", "), variant: "destructive" });
+    }
+    
+    if (validDocs.length > 0) {
+      update("verificationDocs", [...form.verificationDocs, ...validDocs]);
+    }
   };
 
   const removeDoc = (index: number) => {

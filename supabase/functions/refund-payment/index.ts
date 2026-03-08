@@ -54,32 +54,60 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    if (payment.payment_status === "pending" && payment.stripe_payment_intent_id) {
-      // Cancel the uncaptured payment intent
-      await stripe.paymentIntents.cancel(payment.stripe_payment_intent_id);
-    } else if (payment.payment_status === "completed" && payment.stripe_payment_intent_id) {
-      // Refund the captured payment
-      await stripe.refunds.create({ payment_intent: payment.stripe_payment_intent_id });
+    // Track what we've done for rollback
+    let stripeActionCompleted = false;
+    let originalStatus = payment.payment_status;
+
+    try {
+      if (payment.payment_status === "pending" && payment.stripe_payment_intent_id) {
+        // Cancel the uncaptured payment intent
+        await stripe.paymentIntents.cancel(payment.stripe_payment_intent_id);
+        stripeActionCompleted = true;
+      } else if (payment.payment_status === "completed" && payment.stripe_payment_intent_id) {
+        // Refund the captured payment
+        await stripe.refunds.create({ payment_intent: payment.stripe_payment_intent_id });
+        stripeActionCompleted = true;
+      }
+
+      // Update payment status
+      const { error: updateError } = await supabaseAdmin
+        .from("payments")
+        .update({ payment_status: "refunded", refunded_at: new Date().toISOString() })
+        .eq("id", payment_id);
+
+      if (updateError) {
+        // Stripe action succeeded but DB failed - log for manual reconciliation
+        // In production, this would go to an error tracking service
+        throw new Error(`DB update failed after Stripe refund. Payment ${payment_id} needs manual reconciliation. Error: ${updateError.message}`);
+      }
+
+      // Update session status
+      if (payment.session_id) {
+        await supabaseAdmin
+          .from("sessions")
+          .update({ status: "cancelled" })
+          .eq("id", payment.session_id);
+      }
+
+      return new Response(JSON.stringify({ success: true, message: "Refund processed successfully" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } catch (innerError: any) {
+      // If Stripe succeeded but DB failed, we need to flag this
+      if (stripeActionCompleted) {
+        return new Response(JSON.stringify({ 
+          error: innerError.message,
+          requires_reconciliation: true,
+          payment_id 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+      throw innerError;
     }
-
-    await supabaseAdmin
-      .from("payments")
-      .update({ payment_status: "refunded", refunded_at: new Date().toISOString() })
-      .eq("id", payment_id);
-
-    // Update session status
-    if (payment.session_id) {
-      await supabaseAdmin
-        .from("sessions")
-        .update({ status: "cancelled" })
-        .eq("id", payment.session_id);
-    }
-
-    return new Response(JSON.stringify({ success: true, message: "Refund processed successfully" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
+  } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

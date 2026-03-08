@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Save, Loader2, MapPin, X, Check } from "lucide-react";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
+import { phoneSchema, validateImageFile } from "@/lib/validations";
 
 interface ProfileData {
   full_name: string;
@@ -30,6 +31,7 @@ const Settings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
   const [profile, setProfile] = useState<ProfileData>({
     full_name: "",
     phone: "",
@@ -83,12 +85,25 @@ const Settings = () => {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 5 MB", variant: "destructive" });
+    
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast({ title: "Invalid file", description: validation.error, variant: "destructive" });
       return;
     }
+    
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const validatePhone = (value: string) => {
+    const result = phoneSchema.safeParse(value);
+    if (!result.success) {
+      setPhoneError(result.error.errors[0]?.message || "Invalid phone number");
+      return false;
+    }
+    setPhoneError("");
+    return true;
   };
 
   const toggleSubject = (subject: string) => {
@@ -122,6 +137,13 @@ const Settings = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    
+    // Validate phone before saving
+    if (profile.phone.trim() && !validatePhone(profile.phone)) {
+      toast({ title: "Invalid phone number", description: phoneError, variant: "destructive" });
+      return;
+    }
+    
     setSaving(true);
 
     try {
