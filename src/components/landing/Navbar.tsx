@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -57,6 +57,11 @@ const Navbar = () => {
           {user ? (
             <>
               <Button variant="ghost" size="sm" asChild className="gap-1.5">
+                <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"}>
+                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="gap-1.5">
                 <Link to="/messages"><MessageSquare className="h-4 w-4" /> Messages</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild className="gap-1.5">
@@ -101,6 +106,11 @@ const Navbar = () => {
             <div className="flex flex-col gap-3 pt-2">
               {user ? (
                 <>
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"} onClick={() => setMobileOpen(false)}>
+                      <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    </Link>
+                  </Button>
                   <Button variant="outline" size="sm" className="gap-1.5" asChild>
                     <Link to="/messages" onClick={() => setMobileOpen(false)}>
                       <MessageSquare className="h-4 w-4" /> Messages

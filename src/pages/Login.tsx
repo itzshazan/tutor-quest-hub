@@ -43,7 +43,8 @@ const Login = () => {
         }
       }
       toast({ title: "Welcome back!" });
-      navigate("/");
+      const role = loggedUser?.user_metadata?.role;
+      navigate(role === "tutor" ? "/dashboard/tutor" : "/dashboard/student");
     }
     setLoading(false);
   };
