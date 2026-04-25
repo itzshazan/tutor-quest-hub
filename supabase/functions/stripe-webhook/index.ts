@@ -46,6 +46,22 @@ serve(async (req) => {
 
   try {
     switch (event.type) {
+      case "checkout.session.completed": {
+        const checkoutSession = event.data.object as Stripe.Checkout.Session;
+        
+        // Update payment record with payment_intent_id
+        if (checkoutSession.payment_intent) {
+          await supabaseAdmin
+            .from("payments")
+            .update({ 
+              stripe_payment_intent_id: checkoutSession.payment_intent as string,
+              payment_status: "pending"
+            })
+            .eq("stripe_checkout_session_id", checkoutSession.id);
+        }
+        break;
+      }
+
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await supabaseAdmin

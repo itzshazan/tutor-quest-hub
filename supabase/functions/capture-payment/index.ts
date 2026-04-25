@@ -63,7 +63,7 @@ serve(async (req) => {
     if (!payment) throw new Error("No pending payment found for this session");
     if (!payment.stripe_payment_intent_id) throw new Error("No payment intent found");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_CUSTOM") || Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 

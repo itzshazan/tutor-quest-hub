@@ -50,7 +50,7 @@ serve(async (req) => {
     if (payment.student_id !== user.id) throw new Error("Only the student can request a refund");
     if (payment.payment_status === "refunded") throw new Error("Payment already refunded");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_CUSTOM") || Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
