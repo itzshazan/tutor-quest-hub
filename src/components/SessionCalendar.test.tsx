@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { format } from "date-fns";
 import { SessionCalendar } from "./SessionCalendar";
 
 const mockSessions = [
@@ -35,12 +36,12 @@ describe("SessionCalendar", () => {
   it("renders the calendar component", () => {
     render(<SessionCalendar sessions={[]} />);
     // Calendar renders month/year header
-    expect(screen.getByText(/march 2026/i)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(format(new Date(), "MMMM yyyy"), "i"))).toBeInTheDocument();
   });
 
   it("renders with sessions", () => {
     render(<SessionCalendar sessions={mockSessions} />);
-    expect(screen.getByText(/march 2026/i)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(format(new Date(), "MMMM yyyy"), "i"))).toBeInTheDocument();
   });
 
   it("displays navigation arrows", () => {

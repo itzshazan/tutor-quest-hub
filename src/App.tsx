@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
 import { AnimatePresence, motion } from "framer-motion";
 import { ProtectedRoute } from "@/components/guards/ProtectedRoute";
@@ -133,25 +132,23 @@ function AnimatedRoutes() {
 
 const App = () => (
   <HelmetProvider>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <SkipToContent />
-          <Toaster />
-          <Sonner />
-          <OfflineBanner />
-          <BrowserRouter>
-            <AuthProvider>
-              <ErrorBoundary>
-                <main id="main-content">
-                  <AnimatedRoutes />
-                </main>
-              </ErrorBoundary>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <SkipToContent />
+        <Toaster />
+        <Sonner />
+        <OfflineBanner />
+        <BrowserRouter>
+          <AuthProvider>
+            <ErrorBoundary>
+              <main id="main-content">
+                <AnimatedRoutes />
+              </main>
+            </ErrorBoundary>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 

@@ -6,6 +6,7 @@ import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const PLATFORM_COMMISSION_RATE = 0.10; // 10%
@@ -149,11 +150,15 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/sessions?payment=cancelled`,
     });
 
+    const paymentIntentId = typeof checkoutSession.payment_intent === "string"
+      ? checkoutSession.payment_intent
+      : null;
+
     console.log("Checkout session created:", checkoutSession.id);
-    console.log("Payment intent:", checkoutSession.payment_intent);
+    console.log("Payment intent:", paymentIntentId ?? "not created yet");
 
     // Create payment record with checkout session ID
-    // The payment_intent will be added later via webhook when customer completes payment
+    // Stripe may create payment_intent after checkout starts/completes, so null here is valid.
     console.log("Creating payment record...");
     const { error: insertError } = await supabaseAdmin.from("payments").insert({
       student_id: session.student_id,
@@ -163,7 +168,7 @@ serve(async (req) => {
       platform_commission: commission / 100,
       tutor_earnings: tutorEarnings / 100,
       stripe_checkout_session_id: checkoutSession.id,
-      stripe_payment_intent_id: null, // Will be updated by webhook
+      stripe_payment_intent_id: paymentIntentId,
       payment_status: "pending",
     });
 

@@ -1,116 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import {
+  getSessionCreatedEmail,
+  getSessionConfirmedEmail,
+  getSessionCanceledEmail,
+} from "./email-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-interface NotificationPayload {
-  session_id: string;
-  event_type: "booked" | "confirmed" | "declined" | "paid" | "completed" | "cancelled";
-}
-
-const SUBJECT_MAP: Record<string, string> = {
-  booked: "📚 New Session Request",
-  confirmed: "✅ Session Confirmed",
-  declined: "❌ Session Declined",
-  paid: "💰 Payment Received",
-  completed: "🎉 Session Completed",
-  cancelled: "🚫 Session Cancelled",
-};
-
-function buildEmailHtml(
-  event_type: string,
-  recipientName: string,
-  otherName: string,
-  subject: string,
-  sessionDate: string,
-  startTime: string,
-  endTime: string,
-  isTutor: boolean
-): string {
-  const messages: Record<string, string> = {
-    booked: isTutor
-      ? `<strong>${otherName}</strong> has requested a tutoring session with you.`
-      : `Your session request with <strong>${otherName}</strong> has been sent. You'll be notified when they respond.`,
-    confirmed: isTutor
-      ? `You confirmed the session with <strong>${otherName}</strong>.`
-      : `Great news! <strong>${otherName}</strong> has confirmed your session.`,
-    declined: isTutor
-      ? `You declined the session with <strong>${otherName}</strong>.`
-      : `Unfortunately, <strong>${otherName}</strong> was unable to accept your session request.`,
-    paid: isTutor
-      ? `<strong>${otherName}</strong> has completed payment for your upcoming session. The funds are held in escrow until the session is completed.`
-      : `Your payment for the session with <strong>${otherName}</strong> has been received and is held securely.`,
-    completed: isTutor
-      ? `Your session with <strong>${otherName}</strong> is complete! Payment has been released to you.`
-      : `Your session with <strong>${otherName}</strong> is complete! We hope it was helpful.`,
-    cancelled: `The session with <strong>${otherName}</strong> has been cancelled.`,
-  };
-
-  return `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,sans-serif;">
-  <div style="max-width:520px;margin:32px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <div style="background:#1a1a2e;padding:24px 32px;">
-      <h1 style="margin:0;color:#ffffff;font-size:20px;">Tutor Quest</h1>
-    </div>
-    <div style="padding:32px;">
-      <p style="margin:0 0 8px;color:#333;font-size:16px;">Hi ${recipientName},</p>
-      <h2 style="margin:16px 0;color:#1a1a2e;font-size:18px;">${SUBJECT_MAP[event_type]}</h2>
-      <p style="color:#555;line-height:1.6;">${messages[event_type] || ""}</p>
-      <div style="margin:24px 0;padding:16px;background:#f8f9fa;border-radius:8px;border-left:4px solid #6c63ff;">
-        <p style="margin:0 0 4px;font-size:14px;color:#888;">Session Details</p>
-        <p style="margin:4px 0;font-size:15px;color:#333;"><strong>Subject:</strong> ${subject}</p>
-        <p style="margin:4px 0;font-size:15px;color:#333;"><strong>Date:</strong> ${sessionDate}</p>
-        <p style="margin:4px 0;font-size:15px;color:#333;"><strong>Time:</strong> ${startTime} – ${endTime}</p>
-      </div>
-      <a href="https://id-preview--0899f252-419d-46a9-9760-b90235af1dbc.lovable.app/sessions" style="display:inline-block;padding:12px 28px;background:#6c63ff;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin-top:8px;">View Sessions</a>
-    </div>
-    <div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
-      <p style="margin:0;font-size:12px;color:#999;">Tutor Quest — Connecting students with great tutors</p>
-    </div>
-  </div>
-</body>
-</html>`;
-}
-
-function getInAppMessage(
-  event_type: string,
-  otherName: string,
-  isTutor: boolean
-): { title: string; message: string } {
-  const titles: Record<string, string> = {
-    booked: isTutor ? "New Session Request" : "Session Requested",
-    confirmed: "Session Confirmed",
-    declined: "Session Declined",
-    paid: isTutor ? "Payment Received" : "Payment Confirmed",
-    completed: "Session Completed",
-    cancelled: "Session Cancelled",
-  };
-
-  const messages: Record<string, string> = {
-    booked: isTutor
-      ? `${otherName} has requested a tutoring session with you.`
-      : `Your session request with ${otherName} has been sent.`,
-    confirmed: isTutor
-      ? `You confirmed the session with ${otherName}.`
-      : `${otherName} has confirmed your session.`,
-    declined: isTutor
-      ? `You declined the session with ${otherName}.`
-      : `${otherName} was unable to accept your session request.`,
-    paid: isTutor
-      ? `${otherName} has completed payment for your session.`
-      : `Your payment for the session with ${otherName} has been received.`,
-    completed: `Your session with ${otherName} is complete!`,
-    cancelled: `The session with ${otherName} has been cancelled.`,
-  };
-
-  return { title: titles[event_type] || "Notification", message: messages[event_type] || "" };
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -119,31 +19,60 @@ serve(async (req) => {
 
   try {
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+    if (!RESEND_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("Missing required environment variables.");
+      return new Response(JSON.stringify({ error: "Configuration missing" }), { status: 500 });
+    }
 
-    const { session_id, event_type }: NotificationPayload = await req.json();
-    if (!session_id || !event_type) throw new Error("session_id and event_type are required");
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    });
 
-    // Fetch session
-    const { data: session } = await supabaseAdmin
-      .from("sessions")
-      .select("*")
-      .eq("id", session_id)
-      .single();
-    if (!session) throw new Error("Session not found");
+    const payload = await req.json();
+    console.log("Webhook payload:", JSON.stringify(payload, null, 2));
 
-    // Fetch both profiles and emails
+    const { type, record, old_record } = payload;
+
+    // We only care about sessions table, inserts and updates
+    if (type !== 'INSERT' && type !== 'UPDATE') {
+      return new Response(JSON.stringify({ message: "Ignored, not INSERT/UPDATE" }), { status: 200, headers: corsHeaders });
+    }
+
+    const sessionId = record.id;
+    const studentId = record.student_id;
+    const tutorId = record.tutor_id;
+    const subject = record.subject;
+    const sessionDate = record.session_date;
+    const startTime = record.start_time;
+    const newStatus = record.status;
+    const oldStatus = old_record?.status;
+
+    // Determine what event this is
+    let emailType = null;
+    if (type === 'INSERT') {
+      emailType = 'CREATED';
+    } else if (type === 'UPDATE' && oldStatus !== newStatus) {
+      if (newStatus === 'confirmed') {
+        emailType = 'CONFIRMED';
+      } else if (newStatus === 'canceled' || newStatus === 'cancelled') {
+        emailType = 'CANCELED';
+      }
+    }
+
+    if (!emailType) {
+      console.log("No email required for this event (status hasn't changed to a target state).");
+      return new Response(JSON.stringify({ message: "No email needed" }), { status: 200, headers: corsHeaders });
+    }
+
+    // Fetch student and tutor profiles to get names and emails
     const [{ data: studentProfile }, { data: tutorProfile }, { data: studentAuth }, { data: tutorAuth }] = await Promise.all([
-      supabaseAdmin.from("profiles").select("full_name").eq("user_id", session.student_id).single(),
-      supabaseAdmin.from("profiles").select("full_name").eq("user_id", session.tutor_id).single(),
-      supabaseAdmin.auth.admin.getUserById(session.student_id),
-      supabaseAdmin.auth.admin.getUserById(session.tutor_id),
+      supabaseAdmin.from("profiles").select("full_name").eq("user_id", studentId).single(),
+      supabaseAdmin.from("profiles").select("full_name").eq("user_id", tutorId).single(),
+      supabaseAdmin.auth.admin.getUserById(studentId),
+      supabaseAdmin.auth.admin.getUserById(tutorId),
     ]);
 
     const studentName = studentProfile?.full_name || "Student";
@@ -151,76 +80,65 @@ serve(async (req) => {
     const studentEmail = studentAuth?.user?.email;
     const tutorEmail = tutorAuth?.user?.email;
 
-    // Determine recipients based on event type
-    const recipients: Array<{ userId: string; email: string; name: string; isTutor: boolean; otherName: string }> = [];
-
-    if (event_type === "booked") {
-      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
-    } else if (event_type === "confirmed" || event_type === "declined") {
-      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
-    } else if (event_type === "paid") {
-      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
-      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
-    } else if (event_type === "completed") {
-      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
-      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
-    } else if (event_type === "cancelled") {
-      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
-      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+    if (!studentEmail && !tutorEmail) {
+      throw new Error("Could not find emails for student or tutor");
     }
 
-    // Send emails and create in-app notifications in parallel
-    const results = await Promise.all(
-      recipients.map(async (r) => {
-        // Create in-app notification
-        const inAppContent = getInAppMessage(event_type, r.otherName, r.isTutor);
-        const notificationPromise = supabaseAdmin.from("notifications").insert({
-          user_id: r.userId,
-          title: inAppContent.title,
-          message: inAppContent.message,
-          type: "session",
-          link: "/sessions",
-        });
+    let to = "";
+    let subjectLine = "";
+    let htmlContent = "";
 
-        // Send email
-        const html = buildEmailHtml(
-          event_type, r.name, r.otherName,
-          session.subject, session.session_date, session.start_time, session.end_time,
-          r.isTutor
-        );
+    if (emailType === 'CREATED') {
+      to = tutorEmail || "";
+      subjectLine = `New Session Request: ${subject}`;
+      htmlContent = getSessionCreatedEmail(studentName, tutorName, subject, sessionDate, startTime);
+    } else if (emailType === 'CONFIRMED') {
+      to = studentEmail || "";
+      subjectLine = `Session Confirmed: ${subject}`;
+      htmlContent = getSessionConfirmedEmail(studentName, tutorName, subject, sessionDate, startTime);
+    } else if (emailType === 'CANCELED') {
+      // For simplicity, let's notify the student
+      to = studentEmail || "";
+      subjectLine = `Session Canceled: ${subject}`;
+      htmlContent = getSessionCanceledEmail(studentName, tutorName, subject, sessionDate, startTime, false);
+    }
 
-        const emailPromise = fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "Tutor Quest <onboarding@resend.dev>",
-            to: [r.email],
-            subject: `${SUBJECT_MAP[event_type]} — ${session.subject}`,
-            html,
-          }),
-        });
+    if (!to) {
+      console.log("Recipient email is missing.");
+      return new Response(JSON.stringify({ message: "Recipient email is missing" }), { status: 200, headers: corsHeaders });
+    }
 
-        const [notifResult, emailRes] = await Promise.all([notificationPromise, emailPromise]);
-        const emailData = await emailRes.json();
+    // Send email via Resend
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Tutor Quest Notifications <onboarding@resend.dev>",
+        to: [to],
+        subject: subjectLine,
+        html: htmlContent,
+      }),
+    });
 
-        return { 
-          email: r.email, 
-          emailSuccess: emailRes.ok, 
-          emailData,
-          notificationCreated: !notifResult.error 
-        };
-      })
-    );
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Resend API Error:", errorText);
+      throw new Error(`Resend API failed: ${errorText}`);
+    }
 
-    return new Response(JSON.stringify({ success: true, results }), {
+    const resendData = await res.json();
+    console.log("Email sent successfully:", resendData);
+
+    return new Response(JSON.stringify({ success: true, message: "Email sent" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
+
   } catch (error: any) {
-    console.error("Notification error:", error);
+    console.error("Error processing webhook:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

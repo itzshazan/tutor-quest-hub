@@ -1,20 +1,32 @@
-import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
-import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
-import { Tilt3D } from "./Tilt3D";
 import { Link } from "react-router-dom";
+import { Check } from "lucide-react";
+import { ScrollReveal } from "./ScrollReveal";
+
+const LoopIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5">
+    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+    <path d="M9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12Z" />
+  </svg>
+);
+
+const HandDrawnArrow = () => (
+  <div className="absolute -right-24 top-1/2 -translate-y-1/2 hidden xl:block opacity-70">
+    <svg width="60" height="80" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 5 C 30 10, 50 40, 10 70" stroke="#2d2d2d" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M10 70 L 25 65 M10 70 L 15 55" stroke="#2d2d2d" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </div>
+);
 
 const plans = [
   {
     name: "Student",
     price: "Free",
-    description: "Everything you need to find and book tutors.",
     features: [
-      "Unlimited tutor search",
-      "Direct messaging",
-      "Session booking",
-      "Payment protection",
-      "Review & rate tutors",
+      "Search & connect with tutors",
+      "Chat with tutors",
+      "Book sessions",
+      "No hidden fees",
     ],
     cta: "Get Started",
     href: "/signup",
@@ -23,114 +35,111 @@ const plans = [
   {
     name: "Tutor",
     price: "Free",
-    description: "Start teaching and earning with zero upfront cost.",
     features: [
-      "Create your profile",
-      "Set your own rates",
-      "Accept booking requests",
-      "Secure escrow payments",
-      "Build your reputation",
-      "10% platform commission",
+      "Create tutor profile",
+      "Connect with students",
+      "Manage sessions",
+      "Secure payments",
+      "Grow your reach",
     ],
-    cta: "Start Teaching",
+    cta: "Get Started",
     href: "/signup",
     highlighted: true,
   },
   {
     name: "Premium Tutor",
     price: "₹499/mo",
-    description: "Boost visibility and get priority placement.",
     features: [
-      "Everything in Tutor plan",
-      "Featured in search results",
-      "Priority support",
-      "Analytics dashboard",
-      "5% platform commission",
-      "Verified badge",
+      "All Free features",
+      "Priority listing",
+      "Advanced analytics",
+      "Profile boost",
+      "More visibility",
     ],
-    cta: "Coming Soon",
+    cta: "Upgrade Now",
     href: "#",
     highlighted: false,
-    disabled: true,
+    useAltIcon: true,
   },
 ];
 
 const PricingSection = () => {
   return (
-    <section id="pricing" className="py-24 md:py-32">
-      <div className="container">
-        <ScrollReveal variant="flipUp">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-body-sm font-semibold uppercase tracking-widest text-accent">Pricing</p>
-            <h2 className="mt-3 text-display text-foreground">Simple, transparent pricing</h2>
-            <p className="mt-4 text-body-lg text-muted-foreground">
-              No hidden fees. Get started for free and only pay when you're ready.
+    <section id="pricing" className="py-20 md:py-28 bg-transparent">
+      <div className="container max-w-[1000px] mx-auto px-6 relative">
+        <ScrollReveal variant="fadeUp">
+          <div className="mx-auto max-w-2xl text-center flex flex-col items-center">
+            <span 
+              className="bg-[#fef3c7] text-[#2d2d2d] px-4 py-1 text-[10px] font-bold shadow-[2px_2px_0px_#2d2d2d] border-[2px] border-[#2d2d2d] mb-4 uppercase tracking-wider"
+              style={{ borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px", transform: "rotate(-1deg)" }}
+            >
+              Pricing
+            </span>
+            <h2 className="mt-2 text-3xl md:text-[2.5rem] font-kalam font-bold text-[#2d2d2d]">
+              Simple, transparent pricing
+            </h2>
+            <p className="mt-2 font-patrick text-sm md:text-base text-gray-500">
+              Choose the plan that works best for you.
             </p>
           </div>
         </ScrollReveal>
 
-        <StaggerContainer className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" staggerDelay={0.12}>
-          {plans.map((plan) => (
-            <StaggerItem key={plan.name} variant="flipUp">
-              <Tilt3D
-                intensity={plan.highlighted ? 10 : 7}
-                scale={plan.highlighted ? 1.03 : 1.02}
-                className={`group relative flex h-full flex-col rounded-2xl border p-8 shadow-card transition-shadow hover:shadow-card-hover ${
-                  plan.highlighted ? "border-accent bg-primary text-primary-foreground" : "bg-card"
+        <div className="mt-16 grid gap-6 md:grid-cols-3 relative z-10">
+          {plans.map((plan, i) => (
+            <ScrollReveal key={plan.name} variant="fadeUp" delay={i * 0.1} className="relative h-full">
+              <div 
+                className={`relative h-full flex flex-col bg-white border-[3px] border-[#2d2d2d] p-8 shadow-[4px_4px_0px_#2d2d2d] transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_#2d2d2d] ${
+                  plan.highlighted ? "md:-mt-2 md:mb-2 bg-[#fef3c7]" : ""
                 }`}
+                style={{ 
+                  backgroundColor: plan.highlighted ? "#fef3c7" : "#ffffff",
+                  borderRadius: i % 2 === 0 ? "15px 255px 15px 225px / 225px 15px 255px 15px" : "255px 15px 225px 15px / 15px 225px 15px 255px",
+                  transform: i === 1 ? "rotate(-1deg)" : (i === 0 ? "rotate(1deg)" : "rotate(0.5deg)")
+                }}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="rounded-full bg-accent px-4 py-1 text-xs font-bold text-accent-foreground">
-                      Most Popular
-                    </span>
+                  <div 
+                    className="absolute -top-[14px] right-6 bg-[#ef4444] text-white text-[10px] uppercase tracking-wider font-bold px-3 py-1 border-[2px] border-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d]"
+                    style={{ borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px", transform: "rotate(2deg)" }}
+                  >
+                    Most Popular
                   </div>
                 )}
-
-                <div style={{ transform: "translateZ(20px)" }}>
-                  <h3 className="text-lg font-semibold">{plan.name}</h3>
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-display text-inherit">{plan.price}</span>
-                  </div>
-                  <p className={`mt-2 text-body-sm ${plan.highlighted ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                    {plan.description}
-                  </p>
+                
+                <h3 className="font-kalam font-bold text-[#2d2d2d] text-base italic">{plan.name}</h3>
+                <div className="mt-2 mb-6">
+                  <span className="font-kalam font-bold text-[2.5rem] text-[#2d2d2d] leading-none">{plan.price}</span>
                 </div>
 
-                <ul className="mt-8 flex-1 space-y-4" style={{ transform: "translateZ(15px)" }}>
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3">
-                      <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${plan.highlighted ? "text-accent" : "text-accent"}`} />
-                      <span className={`text-body-sm ${plan.highlighted ? "text-primary-foreground/90" : "text-foreground"}`}>
-                        {feature}
-                      </span>
+                <ul className="space-y-4 mb-10 flex-1">
+                  {plan.features.map((f, j) => (
+                    <li key={j} className="flex items-start gap-3">
+                      {plan.useAltIcon ? (
+                        <LoopIcon />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border-[1.5px] border-[#ef4444] flex items-center justify-center shrink-0 mt-0.5">
+                          <Check className="w-2.5 h-2.5 text-[#ef4444]" strokeWidth={3} />
+                        </div>
+                      )}
+                      <span className="font-patrick text-sm font-medium text-gray-600 leading-tight">{f}</span>
                     </li>
                   ))}
                 </ul>
 
-                <div className="mt-8" style={{ transform: "translateZ(25px)" }}>
-                  <Button
-                    size="lg"
-                    className={`w-full rounded-full ${
-                      plan.highlighted
-                        ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                        : ""
-                    }`}
-                    variant={plan.highlighted ? "default" : "outline"}
-                    disabled={plan.disabled}
-                    asChild={!plan.disabled}
-                  >
-                    {plan.disabled ? (
-                      <span>{plan.cta}</span>
-                    ) : (
-                      <Link to={plan.href}>{plan.cta}</Link>
-                    )}
-                  </Button>
-                </div>
-              </Tilt3D>
-            </StaggerItem>
+                <Link
+                  to={plan.href}
+                  className="w-full text-center font-sans text-[11px] font-bold px-4 py-2.5 border-[2px] border-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] bg-white hover:bg-gray-50 transition-all hover:-translate-y-0.5 mt-auto"
+                  style={{ borderRadius: "255px 8px 225px 8px / 8px 225px 8px 255px" }}
+                >
+                  {plan.cta}
+                </Link>
+              </div>
+              
+              {/* Add arrow after 3rd card */}
+              {i === 2 && <HandDrawnArrow />}
+            </ScrollReveal>
           ))}
-        </StaggerContainer>
+        </div>
       </div>
     </section>
   );

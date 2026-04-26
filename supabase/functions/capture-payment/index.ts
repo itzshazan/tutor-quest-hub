@@ -6,6 +6,7 @@ import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
@@ -53,22 +54,43 @@ serve(async (req) => {
     }
 
     // Get payment record
-    const { data: payment } = await supabaseAdmin
+    const { data: payment, error: paymentError } = await supabaseAdmin
       .from("payments")
       .select("*")
       .eq("session_id", session_id)
       .eq("payment_status", "pending")
-      .single();
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
+    if (paymentError) throw new Error(`DB Error: ${paymentError.message}`);
     if (!payment) throw new Error("No pending payment found for this session");
-    if (!payment.stripe_payment_intent_id) throw new Error("No payment intent found");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_CUSTOM") || Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
+    let paymentIntentId = payment.stripe_payment_intent_id as string | null;
+
+    // Fallback: if webhook has not synced payment_intent yet, retrieve it from Checkout Session.
+    if (!paymentIntentId && payment.stripe_checkout_session_id) {
+      const checkoutSession = await stripe.checkout.sessions.retrieve(payment.stripe_checkout_session_id);
+      if (typeof checkoutSession.payment_intent === "string") {
+        paymentIntentId = checkoutSession.payment_intent;
+
+        await supabaseAdmin
+          .from("payments")
+          .update({ stripe_payment_intent_id: paymentIntentId })
+          .eq("id", payment.id);
+      }
+    }
+
+    if (!paymentIntentId) {
+      throw new Error("Payment authorization not ready yet. Complete checkout first.");
+    }
+
     // Capture the payment (release from escrow)
-    await stripe.paymentIntents.capture(payment.stripe_payment_intent_id);
+    await stripe.paymentIntents.capture(paymentIntentId);
 
     // Update payment status
     await supabaseAdmin

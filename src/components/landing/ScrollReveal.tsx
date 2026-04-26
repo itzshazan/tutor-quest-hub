@@ -48,6 +48,12 @@ const zoomRotate: Variants = {
   visible: { opacity: 1, scale: 1, rotate: 0 },
 };
 
+const springBounce: Variants = {
+  hidden: { opacity: 0, y: 60, scale: 0.9 },
+  // @ts-expect-error per-variant transition override is valid
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 280, damping: 18 } },
+};
+
 export const variants = {
   fadeUp,
   fadeIn,
@@ -58,6 +64,7 @@ export const variants = {
   rotate3DRight,
   flipUp,
   zoomRotate,
+  springBounce,
 };
 
 /* ───── ScrollReveal ───── */

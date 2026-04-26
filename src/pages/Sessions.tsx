@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,15 +55,49 @@ const Sessions = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const tutorIdParam = searchParams.get("tutor");
   const tutorSubjectParam = searchParams.get("subject");
+  const paymentStatus = searchParams.get("payment");
+  const paymentSessionId = searchParams.get("session_id");
 
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [showBooking, setShowBooking] = useState(!!tutorIdParam);
   const [tutorName, setTutorName] = useState("");
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
 
+  const sendSessionNotification = async (sessionId: string, eventType: string, fallbackTitle: string) => {
+    const { data, error } = await supabase.functions.invoke("send-session-notification", {
+      body: { session_id: sessionId, event_type: eventType },
+    });
+  
+    if (error) {
+      console.error("send-session-notification failed:", error);
+      toast({
+        title: fallbackTitle,
+        description: "Status changed, but email delivery failed. Please verify Resend configuration.",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    const payload = data as { success?: boolean; failedEmails?: Array<{ email: string; emailError?: string | null }> } | null;
+    if (payload?.success === false || (payload?.failedEmails?.length ?? 0) > 0) {
+      const failedCount = payload?.failedEmails?.length ?? 0;
+      const failedEmail = payload?.failedEmails?.[0]?.email;
+      const failedReason = payload?.failedEmails?.[0]?.emailError;
+  
+      toast({
+        title: fallbackTitle,
+        description:
+          failedCount > 0
+            ? `Status changed, but email to ${failedEmail || "recipient"} failed${failedReason ? `: ${failedReason}` : ""}.`
+            : "Status changed, but email delivery may have failed.",
+        variant: "destructive",
+      });
+    }
+  };
   // Booking form state
   const [bookDate, setBookDate] = useState<Date>();
   const [bookStart, setBookStart] = useState("");
@@ -145,12 +180,37 @@ const Sessions = () => {
 
   useEffect(() => { loadSessions(); }, [user]);
 
+  // Handle payment success/cancel from Stripe redirect
+  useEffect(() => {
+    if (paymentStatus === "success") {
+      toast({ 
+        title: "Payment successful!", 
+        description: "Your payment is being processed. The session will be updated shortly." 
+      });
+      // Clear URL params
+      setSearchParams({});
+      // Reload sessions to get updated payment status
+      loadSessions();
+    } else if (paymentStatus === "cancelled") {
+      toast({ 
+        title: "Payment cancelled", 
+        description: "You can try again when ready.",
+        variant: "destructive" 
+      });
+      // Clear URL params
+      setSearchParams({});
+    }
+  }, [paymentStatus]);
+
   // Realtime
   useEffect(() => {
     if (!user) return;
     const channel = supabase
       .channel("sessions-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "sessions" }, () => {
+        loadSessions();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => {
         loadSessions();
       })
       .subscribe();
@@ -214,9 +274,7 @@ const Sessions = () => {
       await loadSessions();
       // Send notification (fire and forget)
       if (inserted?.id) {
-        supabase.functions.invoke("send-session-notification", {
-          body: { session_id: inserted.id, event_type: "booked" },
-        }).catch(console.error);
+        await sendSessionNotification(inserted.id, "booked", "Session requested, email failed");
       }
     }
     setBooking(false);
@@ -231,12 +289,11 @@ const Sessions = () => {
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: `Session ${status}` });
+      await loadSessions();
       // Send notification
       const eventMap: Record<string, string> = { confirmed: "confirmed", declined: "declined", cancelled: "cancelled" };
       if (eventMap[status]) {
-        supabase.functions.invoke("send-session-notification", {
-          body: { session_id: sessionId, event_type: eventMap[status] },
-        }).catch(console.error);
+        await sendSessionNotification(sessionId, eventMap[status], `Session ${status}, email failed`);
       }
     }
   };
@@ -247,35 +304,42 @@ const Sessions = () => {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Skeleton className="h-12 w-48" />
+      <div className="flex min-h-screen items-center justify-center bg-[#f7f3ee]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#ff5a5a] border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b bg-card">
-        <div className="container flex h-14 items-center gap-3">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-primary">
-            <GraduationCap className="h-6 w-6" /> Tutor Quest
-          </Link>
-          <span className="text-sm text-muted-foreground">— Sessions</span>
-        </div>
+    <DashboardLayout role={userRole || "student"} title={<span className="text-hd-ink/60 font-medium">— Sessions</span>}>
+      {/* Paper plane doodle top right */}
+      <div className="absolute top-4 right-12 opacity-80 pointer-events-none hidden md:block z-0">
+        <svg width="120" height="80" viewBox="0 0 120 80" fill="none" stroke="#2d2d2d" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 6">
+          <path d="M10,70 Q50,80 90,30" />
+          <polygon points="90,30 85,25 95,20 93,32" fill="white" stroke="#2d2d2d" strokeDasharray="none" strokeWidth="1.5" />
+        </svg>
       </div>
 
-      <div className="container max-w-3xl py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <button onClick={() => window.history.length > 1 ? window.history.back() : window.location.assign("/")} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Back
+      {/* Scattered background dots/shapes */}
+      <div className="absolute right-20 top-40 w-4 h-4 rounded-full bg-[#ffd166] border border-hd-ink hidden lg:block pointer-events-none"></div>
+      <div className="absolute right-10 top-60 w-3 h-3 rounded-full bg-[#ffb4a2] border border-hd-ink hidden lg:block pointer-events-none"></div>
+      <div className="absolute right-32 bottom-20 w-6 h-6 rounded-full bg-[#90be6d] border border-hd-ink hidden lg:block pointer-events-none"></div>
+      <div className="absolute left-10 bottom-32 opacity-50 pointer-events-none hidden lg:block">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2d2d2d" strokeWidth="2"><path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7.4-6.3-4.8-6.3 4.8 2.3-7.4-6-4.6h7.6z" fill="#ffd166"/></svg>
+      </div>
+
+      <div className="container max-w-4xl h-full flex flex-col relative z-10 py-2">
+        <div className="mb-3 flex items-center justify-between shrink-0">
+          <button onClick={() => window.history.length > 1 ? window.history.back() : window.location.assign("/")} className="inline-flex items-center gap-2 font-kalam font-bold text-hd-ink hover:text-[#ff5a5a] transition-colors text-lg">
+            <ArrowLeft className="h-5 w-5" /> Back
           </button>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => navigate("/payments")} className="gap-1.5">
-              <IndianRupee className="h-4 w-4" /> Payment History
+          <div className="flex items-center gap-4">
+            <Button size="sm" variant="outline" onClick={() => navigate("/payments")} className="bg-white text-hd-ink hover:text-hd-ink hover:bg-[#fdfbf7] border-[3px] border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] hover:shadow-[6px_6px_0px_0px_#2d2d2d] rounded-xl font-bold h-11 px-5 transition-all hover:-translate-y-1">
+              <IndianRupee className="mr-2 h-4 w-4" /> Payment History
             </Button>
             {userRole === "student" && !showBooking && (
-              <Button size="sm" onClick={() => navigate("/find-tutors")} className="gap-1.5">
-                <Plus className="h-4 w-4" /> Book a Session
+              <Button size="sm" variant="outline" onClick={() => navigate("/find-tutors")} className="bg-white text-hd-ink hover:text-hd-ink hover:bg-[#fdfbf7] border-[3px] border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] hover:shadow-[6px_6px_0px_0px_#2d2d2d] rounded-xl font-bold h-11 px-5 transition-all hover:-translate-y-1">
+                <Plus className="mr-2 h-5 w-5" /> Book a Session
               </Button>
             )}
           </div>
@@ -283,50 +347,50 @@ const Sessions = () => {
 
         {/* Booking Form */}
         {showBooking && tutorIdParam && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <CalendarIcon className="h-5 w-5 text-primary" />
+          <Card className="mb-8 border-[3px] border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] rounded-2xl bg-white overflow-hidden">
+            <CardHeader className="bg-[#fdfbf7] border-b-2 border-hd-ink border-dashed">
+              <CardTitle className="flex items-center gap-2 font-kalam text-2xl text-hd-ink">
+                <CalendarIcon className="h-6 w-6 text-[#ff5a5a]" />
                 Book a Session with {tutorName}
               </CardTitle>
-              <CardDescription>Choose a date, time, and subject</CardDescription>
+              <CardDescription className="font-medium text-hd-ink/70">Choose a date, time, and subject</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-6 pt-6">
               {/* Subject */}
               <div className="space-y-2">
-                <Label>Subject</Label>
+                <Label className="font-bold text-hd-ink">Subject</Label>
                 {tutorSubjects.length > 0 ? (
                   <Select value={bookSubject} onValueChange={setBookSubject}>
-                    <SelectTrigger><SelectValue placeholder="Select subject" /></SelectTrigger>
-                    <SelectContent>
+                    <SelectTrigger className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] bg-white h-11"><SelectValue placeholder="Select subject" /></SelectTrigger>
+                    <SelectContent className="border-2 border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] rounded-xl">
                       {tutorSubjects.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                        <SelectItem key={s} value={s} className="font-medium">{s}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Loading subjects...</p>
+                  <p className="text-sm font-medium text-hd-ink/60">Loading subjects...</p>
                 )}
               </div>
 
               {/* Date */}
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label className="font-bold text-hd-ink">Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !bookDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-bold border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl h-11", !bookDate && "text-hd-ink/50")}>
+                      <CalendarIcon className="mr-2 h-5 w-5" />
                       {bookDate ? format(bookDate, "PPP") : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0 border-2 border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] rounded-xl overflow-hidden" align="start">
                     <Calendar
                       mode="single"
                       selected={bookDate}
                       onSelect={setBookDate}
                       disabled={(date) => isBefore(startOfDay(date), startOfDay(new Date()))}
                       initialFocus
-                      className={cn("p-3 pointer-events-auto")}
+                      className={cn("p-3 pointer-events-auto bg-white")}
                     />
                   </PopoverContent>
                 </Popover>
@@ -334,29 +398,29 @@ const Sessions = () => {
 
               {/* Time */}
               {bookDate && availableStartTimes.length === 0 ? (
-                <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                <div className="rounded-xl border-2 border-[#ff5a5a] bg-[#ffebed] p-4 text-sm font-bold text-[#d32f2f] shadow-[2px_2px_0px_0px_#2d2d2d]">
                   The tutor is not available on {format(bookDate, "EEEE")}. Please select a different date.
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Start Time</Label>
+                    <Label className="font-bold text-hd-ink">Start Time</Label>
                     <Select value={bookStart} onValueChange={(v) => { setBookStart(v); setBookEnd(""); }}>
-                      <SelectTrigger><SelectValue placeholder="Start" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectTrigger className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] bg-white h-11"><SelectValue placeholder="Start" /></SelectTrigger>
+                      <SelectContent className="border-2 border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] rounded-xl">
                         {availableStartTimes.map((t) => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                          <SelectItem key={t} value={t} className="font-medium">{t}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>End Time</Label>
+                    <Label className="font-bold text-hd-ink">End Time</Label>
                     <Select value={bookEnd} onValueChange={setBookEnd} disabled={!bookStart}>
-                      <SelectTrigger><SelectValue placeholder="End" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectTrigger className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] bg-white h-11"><SelectValue placeholder="End" /></SelectTrigger>
+                      <SelectContent className="border-2 border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] rounded-xl">
                         {availableEndTimes.map((t) => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                          <SelectItem key={t} value={t} className="font-medium">{t}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -366,22 +430,23 @@ const Sessions = () => {
 
               {/* Notes */}
               <div className="space-y-2">
-                <Label>Notes (optional)</Label>
+                <Label className="font-bold text-hd-ink">Notes (optional)</Label>
                 <Textarea
                   placeholder="Any specific topics or requests..."
                   value={bookNotes}
                   onChange={(e) => setBookNotes(e.target.value)}
                   maxLength={500}
                   rows={3}
+                  className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] bg-white font-medium resize-none focus-visible:ring-0"
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button onClick={handleBook} disabled={booking || !bookDate || !bookStart || !bookEnd || !bookSubject}>
-                  {booking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
+              <div className="flex gap-3 pt-4">
+                <Button onClick={handleBook} disabled={booking || !bookDate || !bookStart || !bookEnd || !bookSubject} className="bg-[#90be6d] text-white hover:bg-[#78a258] border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl font-bold px-6 h-11">
+                  {booking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-5 w-5" />}
                   {booking ? "Booking..." : "Request Session"}
                 </Button>
-                <Button variant="outline" onClick={() => { setShowBooking(false); navigate("/sessions", { replace: true }); }}>
+                <Button variant="outline" onClick={() => { setShowBooking(false); navigate("/sessions", { replace: true }); }} className="bg-white text-hd-ink hover:bg-hd-muted border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl font-bold px-6 h-11">
                   Cancel
                 </Button>
               </div>
@@ -390,69 +455,70 @@ const Sessions = () => {
         )}
 
         {/* Sessions View Toggle */}
-        <Tabs defaultValue="list">
-          <div className="mb-4 flex items-center justify-between">
-            <TabsList>
-              <TabsTrigger value="list" className="gap-1.5">
-                <List className="h-4 w-4" />
-                List
+        <Tabs defaultValue="list" className="w-full flex-1 flex flex-col min-h-0">
+          <div className="mb-3 shrink-0">
+            <TabsList className="bg-transparent h-auto p-0 flex gap-4 border-none self-start justify-start">
+              <TabsTrigger value="list" className="bg-white border-2 border-hd-ink/30 data-[state=active]:border-[3px] data-[state=active]:border-hd-ink data-[state=active]:shadow-[4px_4px_0px_0px_#2d2d2d] data-[state=active]:translate-y-[-2px] rounded-xl font-bold h-11 px-6 data-[state=active]:bg-white transition-all text-hd-ink">
+                <List className="mr-2 h-5 w-5" /> List
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="gap-1.5">
-                <LayoutGrid className="h-4 w-4" />
-                Calendar
+              <TabsTrigger value="calendar" className="bg-white border-2 border-hd-ink/30 data-[state=active]:border-[3px] data-[state=active]:border-hd-ink data-[state=active]:shadow-[4px_4px_0px_0px_#2d2d2d] data-[state=active]:translate-y-[-2px] rounded-xl font-bold h-11 px-6 data-[state=active]:bg-white transition-all text-hd-ink">
+                <LayoutGrid className="mr-2 h-5 w-5" /> Calendar
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="list">
+          <TabsContent value="list" className="mt-0 data-[state=active]:flex-1 data-[state=active]:flex data-[state=active]:flex-col min-h-0">
             {/* Sessions List */}
-            <Tabs defaultValue="upcoming">
-              <TabsList className="mb-4">
-                <TabsTrigger value="upcoming">
-                  Upcoming {upcoming.length > 0 && `(${upcoming.length})`}
+            <Tabs defaultValue="upcoming" className="w-full flex-1 flex flex-col min-h-0">
+              <TabsList className="bg-[#f0ece6] h-auto p-1.5 flex gap-1 mb-3 border-none shrink-0 self-start justify-start rounded-2xl w-fit">
+                <TabsTrigger value="upcoming" className="border-none shadow-none data-[state=active]:shadow-[0px_2px_8px_rgba(0,0,0,0.08)] data-[state=active]:bg-white rounded-xl font-bold h-10 px-6 text-hd-ink/60 data-[state=active]:text-hd-ink transition-all">
+                  Upcoming
                 </TabsTrigger>
-                <TabsTrigger value="past">
-                  Past {past.length > 0 && `(${past.length})`}
+                <TabsTrigger value="past" className="border-none shadow-none data-[state=active]:shadow-[0px_2px_8px_rgba(0,0,0,0.08)] data-[state=active]:bg-white rounded-xl font-bold h-10 px-6 text-hd-ink/60 data-[state=active]:text-hd-ink transition-all">
+                  Past ({past.length})
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="upcoming">
+              <TabsContent value="upcoming" className="mt-0 flex-1 overflow-y-auto pr-2 pb-4">
                 {loadingSessions ? (
-                  <div className="space-y-3">
-                    {[1, 2].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+                  <div className="space-y-4">
+                    {[1, 2].map((i) => <Skeleton key={i} className="h-32 rounded-2xl border-[3px] border-hd-ink/20" />)}
                   </div>
                 ) : upcoming.length === 0 ? (
-                  <div className="flex flex-col items-center py-16 text-center">
-                    <CalendarIcon className="h-12 w-12 text-muted-foreground/30" />
-                    <p className="mt-4 font-medium text-muted-foreground">No upcoming sessions</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                  <div className="flex flex-col items-center py-2 text-center relative max-w-lg mx-auto">
+                    {/* Calendar Illustration */}
+                    <div className="relative mb-2">
+                      <img src="/sessions-empty.png" alt="No sessions" className="w-[200px] h-auto object-contain" />
+                    </div>
+                    <h2 className="font-kalam text-2xl font-bold text-hd-ink mb-1">No upcoming sessions</h2>
+                    <p className="text-hd-ink/80 font-medium text-sm">
                       {userRole === "student" ? "Find a tutor to book your first session!" : "Sessions will appear here when students book with you."}
                     </p>
                     {userRole === "student" && (
-                      <Button size="sm" asChild className="mt-4">
+                      <Button asChild className="mt-3 bg-[#ff5a5a] text-white hover:bg-[#e04848] border-[3px] border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] rounded-xl font-bold px-6 h-10 text-sm hover:-translate-y-1 transition-all">
                         <Link to="/find-tutors">Find Tutors</Link>
                       </Button>
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {upcoming.map((s) => (
-                      <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} />
+                      <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} onReload={loadSessions} />
                     ))}
                   </div>
                 )}
               </TabsContent>
 
-              <TabsContent value="past">
+              <TabsContent value="past" className="mt-0 flex-1 overflow-y-auto pr-2 pb-4">
                 {past.length === 0 ? (
-                  <div className="flex flex-col items-center py-16 text-center">
-                    <Clock className="h-12 w-12 text-muted-foreground/30" />
-                    <p className="mt-4 font-medium text-muted-foreground">No past sessions</p>
+                  <div className="flex flex-col items-center py-4 text-center">
+                    <Clock className="h-10 w-10 text-hd-ink/30 mb-3" />
+                    <h2 className="font-kalam text-xl font-bold text-hd-ink mb-2">No past sessions</h2>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {past.map((s) => (
-                      <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} />
+                      <SessionCard key={s.id} session={s} userId={user!.id} userRole={userRole} onStatusChange={updateStatus} onReload={loadSessions} />
                     ))}
                   </div>
                 )}
@@ -460,23 +526,23 @@ const Sessions = () => {
             </Tabs>
           </TabsContent>
 
-          <TabsContent value="calendar">
-            <Card>
+          <TabsContent value="calendar" className="mt-0 data-[state=active]:flex-1 data-[state=active]:flex data-[state=active]:flex-col min-h-0 overflow-y-auto pr-2 pb-4">
+            <Card className="border-[3px] border-hd-ink rounded-2xl shadow-[6px_6px_0px_0px_#2d2d2d] bg-white overflow-hidden">
               <CardContent className="p-6">
                 <SessionCalendar 
                   sessions={sessions.map(s => ({
                     ...s,
                   other_user: s.other_user || undefined,
                 }))} 
-                onDateSelect={() => {}}
-                selectedDate={new Date()}
+                onDateSelect={setSelectedCalendarDate}
+                selectedDate={selectedCalendarDate}
               />
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
@@ -485,11 +551,13 @@ const SessionCard = ({
   userId,
   userRole,
   onStatusChange,
+  onReload,
 }: {
   session: Session;
   userId: string;
   userRole: string;
   onStatusChange: (id: string, status: string) => void;
+  onReload: () => void;
 }) => {
   const isTutor = session.tutor_id === userId;
   const { toast } = useToast();
@@ -503,18 +571,72 @@ const SessionCard = ({
     .toUpperCase()
     .slice(0, 2) || "?";
 
+  const getPaymentErrorMessage = async (err: any) => {
+    if (err?.context) {
+      try {
+        const payload = await err.context.json();
+        const serverMessage = payload?.error || payload?.message || payload?.details;
+        if (typeof serverMessage === "string" && serverMessage.trim()) {
+          return serverMessage;
+        }
+      } catch {
+        // Ignore non-JSON function responses
+      }
+    }
+
+    if (typeof err?.message === "string" && err.message.trim()) {
+      const isGenericHttpMessage = err.message.toLowerCase().includes("non-2xx");
+      if (!isGenericHttpMessage) {
+        return err.message;
+      }
+    }
+
+    return "Could not initiate payment";
+  };
+
   const handlePay = async () => {
     setPayLoading(true);
     try {
+      console.log("Invoking payment function for session:", session.id);
+      
+      // Get current session to ensure we have a valid auth token
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession) {
+        throw new Error("You must be logged in to make a payment");
+      }
+      
+      console.log("Auth session found, access token:", authSession.access_token.substring(0, 20) + "...");
+      
       const { data, error } = await supabase.functions.invoke("create-session-payment", {
         body: { session_id: session.id },
       });
-      if (error) throw error;
+      
+      console.log("Payment response:", { data, error });
+      
+      if (error) {
+        console.error("Payment error:", error);
+        throw error;
+      }
+      
+      if (data?.error) {
+        console.error("Payment data error:", data.error);
+        throw new Error(data.error);
+      }
+      
       if (data?.url) {
+        console.log("Redirecting to:", data.url);
         window.open(data.url, "_blank");
+      } else {
+        throw new Error("No payment URL returned");
       }
     } catch (err: any) {
-      toast({ title: "Payment failed", description: err.message || "Could not initiate payment", variant: "destructive" });
+      console.error("Payment failed:", err);
+      const description = await getPaymentErrorMessage(err);
+      toast({ 
+        title: "Payment failed", 
+        description,
+        variant: "destructive" 
+      });
     }
     setPayLoading(false);
   };
@@ -527,9 +649,10 @@ const SessionCard = ({
       });
       if (error) throw error;
       toast({ title: "Session completed!", description: "Payment has been released to the tutor." });
-      // Trigger reload via realtime
+      onReload();
     } catch (err: any) {
-      toast({ title: "Capture failed", description: err.message || "Could not capture payment", variant: "destructive" });
+      const description = await getPaymentErrorMessage(err);
+      toast({ title: "Capture failed", description, variant: "destructive" });
     }
     setCaptureLoading(false);
   };
@@ -539,93 +662,93 @@ const SessionCard = ({
   const canCapture = session.status === "confirmed" && paymentStatus === "pending";
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 shrink-0">
+    <Card className="border-[3px] border-hd-ink shadow-[4px_4px_0px_0px_#2d2d2d] rounded-2xl bg-white hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_#2d2d2d] transition-all duration-300">
+      <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-14 w-14 shrink-0 border-[3px] border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d]">
             <AvatarImage src={session.other_user?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">{initials}</AvatarFallback>
+            <AvatarFallback className="bg-[#ffd166] text-hd-ink font-bold text-lg">{initials}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-semibold">{session.other_user?.full_name}</p>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <BookOpen className="h-3 w-3" /> {session.subject}
+            <p className="text-lg font-bold text-hd-ink font-kalam leading-tight">{session.other_user?.full_name}</p>
+            <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-hd-ink/70 mt-1">
+              <span className="flex items-center gap-1 bg-hd-muted px-2 py-0.5 rounded-md border border-hd-ink/20">
+                <BookOpen className="h-3.5 w-3.5" /> {session.subject}
               </span>
               <span className="flex items-center gap-1">
-                <CalendarIcon className="h-3 w-3" /> {format(new Date(session.session_date), "MMM d, yyyy")}
+                <CalendarIcon className="h-3.5 w-3.5" /> {format(new Date(session.session_date), "MMM d, yyyy")}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> {session.start_time.slice(0, 5)}–{session.end_time.slice(0, 5)}
+                <Clock className="h-3.5 w-3.5" /> {session.start_time.slice(0, 5)}–{session.end_time.slice(0, 5)}
               </span>
             </div>
             {session.notes && (
-              <p className="mt-1 text-xs text-muted-foreground italic">"{session.notes}"</p>
+              <p className="mt-2 text-sm text-hd-ink/80 italic font-medium bg-[#fdfbf7] p-2 rounded-lg border border-hd-ink border-dashed">"{session.notes}"</p>
             )}
             {/* Payment info */}
             {session.payment && (
-              <div className="mt-1 flex items-center gap-2 text-xs">
-                <IndianRupee className="h-3 w-3 text-muted-foreground" />
-                <span className="font-medium">₹{session.payment.amount}</span>
-                <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", 
-                  paymentStatus === "completed" && "border-primary/30 bg-primary/10 text-primary",
-                  paymentStatus === "pending" && "border-accent/30 bg-accent/10 text-accent-foreground",
-                  paymentStatus === "refunded" && "border-destructive/30 bg-destructive/10 text-destructive",
+              <div className="mt-2 flex items-center gap-2 text-sm font-bold">
+                <IndianRupee className="h-3.5 w-3.5 text-hd-ink/70" />
+                <span className="text-hd-ink">₹{session.payment.amount}</span>
+                <Badge variant="outline" className={cn("text-[11px] px-2 py-0.5 border-2", 
+                  paymentStatus === "completed" && "border-[#90be6d] bg-[#eef6ea] text-[#4a7a2a]",
+                  paymentStatus === "pending" && "border-[#ffd166] bg-[#fff9c4] text-[#d4a017]",
+                  paymentStatus === "refunded" && "border-[#ff5a5a] bg-[#ffebed] text-[#d32f2f]",
                 )}>
                   {paymentStatus === "pending" ? "Payment held" : paymentStatus}
                 </Badge>
                 {isTutor && paymentStatus === "completed" && (
-                  <span className="text-muted-foreground">Earned: ₹{session.payment.tutor_earnings}</span>
+                  <span className="text-hd-ink/60">Earned: ₹{session.payment.tutor_earnings}</span>
                 )}
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={cn("text-xs", STATUS_COLORS[session.status] || "")}>
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge className={cn("text-xs font-bold px-3 py-1 border-2 shadow-[2px_2px_0px_0px_#2d2d2d]", STATUS_COLORS[session.status] || "bg-white text-hd-ink border-hd-ink")}>
             {session.status}
           </Badge>
 
           {/* Student: Pay for confirmed session */}
           {needsPayment && (
-            <Button size="sm" className="h-7 gap-1 text-xs" onClick={handlePay} disabled={payLoading}>
-              {payLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}
+            <Button size="sm" className="h-9 px-4 font-bold bg-[#ff5a5a] text-white hover:bg-[#e04848] border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl" onClick={handlePay} disabled={payLoading}>
+              {payLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
               Pay Now
             </Button>
           )}
 
           {/* Tutor actions for pending sessions */}
           {isTutor && session.status === "pending" && (
-            <div className="flex gap-1.5">
-              <Button size="sm" variant="default" className="h-7 gap-1 text-xs" onClick={() => onStatusChange(session.id, "confirmed")}>
-                <Check className="h-3 w-3" /> Accept
+            <div className="flex gap-2">
+              <Button size="sm" className="h-9 px-4 font-bold bg-[#90be6d] text-white hover:bg-[#78a258] border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl" onClick={() => onStatusChange(session.id, "confirmed")}>
+                <Check className="mr-2 h-4 w-4" /> Accept
               </Button>
-              <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => onStatusChange(session.id, "declined")}>
-                <XIcon className="h-3 w-3" /> Decline
+              <Button size="sm" variant="outline" className="h-9 px-4 font-bold bg-white text-hd-ink hover:bg-red-50 border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl" onClick={() => onStatusChange(session.id, "declined")}>
+                <XIcon className="mr-2 h-4 w-4" /> Decline
               </Button>
             </div>
           )}
 
           {/* Complete session & capture payment */}
           {isTutor && canCapture && (
-            <Button size="sm" variant="secondary" className="h-7 gap-1 text-xs" onClick={handleCapture} disabled={captureLoading}>
-              {captureLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+            <Button size="sm" className="h-9 px-4 font-bold bg-[#ffd166] text-hd-ink hover:bg-[#e5bc5c] border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl" onClick={handleCapture} disabled={captureLoading}>
+              {captureLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
               Complete & Release Payment
             </Button>
           )}
 
           {/* Tutor can mark as completed (no payment) */}
           {isTutor && session.status === "confirmed" && !paymentStatus && (
-            <Button size="sm" variant="secondary" className="h-7 gap-1 text-xs" onClick={() => onStatusChange(session.id, "completed")}>
-              <Check className="h-3 w-3" /> Complete
+            <Button size="sm" className="h-9 px-4 font-bold bg-white text-hd-ink hover:bg-hd-muted border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl" onClick={() => onStatusChange(session.id, "completed")}>
+              <Check className="mr-2 h-4 w-4" /> Complete
             </Button>
           )}
 
           {/* Student can cancel pending/confirmed */}
           {!isTutor && ["pending", "confirmed"].includes(session.status) && (
-            <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => onStatusChange(session.id, "cancelled")}>
-              <XIcon className="h-3 w-3" /> Cancel
+            <Button size="sm" variant="outline" className="h-9 px-4 font-bold bg-white text-hd-ink hover:bg-red-50 border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl" onClick={() => onStatusChange(session.id, "cancelled")}>
+              <XIcon className="mr-2 h-4 w-4" /> Cancel
             </Button>
           )}
         </div>

@@ -1,0 +1,280 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+interface NotificationPayload {
+  session_id: string;
+  event_type: "booked" | "confirmed" | "declined" | "paid" | "completed" | "cancelled";
+}
+
+const SUBJECT_MAP: Record<string, string> = {
+  booked: "📚 New Session Request",
+  confirmed: "✅ Session Confirmed",
+  declined: "❌ Session Declined",
+  paid: "💰 Payment Received",
+  completed: "🎉 Session Completed",
+  cancelled: "🚫 Session Cancelled",
+};
+
+function buildEmailHtml(
+  event_type: string,
+  recipientName: string,
+  otherName: string,
+  subject: string,
+  sessionDate: string,
+  startTime: string,
+  endTime: string,
+  isTutor: boolean,
+  sessionsUrl: string
+): string {
+  const messages: Record<string, string> = {
+    booked: isTutor
+      ? `<strong>${otherName}</strong> has requested a tutoring session with you.`
+      : `Your session request with <strong>${otherName}</strong> has been sent. You'll be notified when they respond.`,
+    confirmed: isTutor
+      ? `You confirmed the session with <strong>${otherName}</strong>.`
+      : `Great news! <strong>${otherName}</strong> has confirmed your session.`,
+    declined: isTutor
+      ? `You declined the session with <strong>${otherName}</strong>.`
+      : `Unfortunately, <strong>${otherName}</strong> was unable to accept your session request.`,
+    paid: isTutor
+      ? `<strong>${otherName}</strong> has completed payment for your upcoming session. The funds are held in escrow until the session is completed.`
+      : `Your payment for the session with <strong>${otherName}</strong> has been received and is held securely.`,
+    completed: isTutor
+      ? `Your session with <strong>${otherName}</strong> is complete! Payment has been released to you.`
+      : `Your session with <strong>${otherName}</strong> is complete! We hope it was helpful.`,
+    cancelled: `The session with <strong>${otherName}</strong> has been cancelled.`,
+  };
+
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <div style="background:#1a1a2e;padding:24px 32px;">
+      <h1 style="margin:0;color:#ffffff;font-size:20px;">Tutor Quest</h1>
+    </div>
+    <div style="padding:32px;">
+      <p style="margin:0 0 8px;color:#333;font-size:16px;">Hi ${recipientName},</p>
+      <h2 style="margin:16px 0;color:#1a1a2e;font-size:18px;">${SUBJECT_MAP[event_type]}</h2>
+      <p style="color:#555;line-height:1.6;">${messages[event_type] || ""}</p>
+      <div style="margin:24px 0;padding:16px;background:#f8f9fa;border-radius:8px;border-left:4px solid #6c63ff;">
+        <p style="margin:0 0 4px;font-size:14px;color:#888;">Session Details</p>
+        <p style="margin:4px 0;font-size:15px;color:#333;"><strong>Subject:</strong> ${subject}</p>
+        <p style="margin:4px 0;font-size:15px;color:#333;"><strong>Date:</strong> ${sessionDate}</p>
+        <p style="margin:4px 0;font-size:15px;color:#333;"><strong>Time:</strong> ${startTime} – ${endTime}</p>
+      </div>
+      <a href="${sessionsUrl}" style="display:inline-block;padding:12px 28px;background:#6c63ff;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin-top:8px;">View Sessions</a>
+    </div>
+    <div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
+      <p style="margin:0;font-size:12px;color:#999;">Tutor Quest — Connecting students with great tutors</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+function getInAppMessage(
+  event_type: string,
+  otherName: string,
+  isTutor: boolean
+): { title: string; message: string } {
+  const titles: Record<string, string> = {
+    booked: isTutor ? "New Session Request" : "Session Requested",
+    confirmed: "Session Confirmed",
+    declined: "Session Declined",
+    paid: isTutor ? "Payment Received" : "Payment Confirmed",
+    completed: "Session Completed",
+    cancelled: "Session Cancelled",
+  };
+
+  const messages: Record<string, string> = {
+    booked: isTutor
+      ? `${otherName} has requested a tutoring session with you.`
+      : `Your session request with ${otherName} has been sent.`,
+    confirmed: isTutor
+      ? `You confirmed the session with ${otherName}.`
+      : `${otherName} has confirmed your session.`,
+    declined: isTutor
+      ? `You declined the session with ${otherName}.`
+      : `${otherName} was unable to accept your session request.`,
+    paid: isTutor
+      ? `${otherName} has completed payment for your session.`
+      : `Your payment for the session with ${otherName} has been received.`,
+    completed: `Your session with ${otherName} is complete!`,
+    cancelled: `The session with ${otherName} has been cancelled.`,
+  };
+
+  return { title: titles[event_type] || "Notification", message: messages[event_type] || "" };
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not configured in Supabase secrets");
+      throw new Error("RESEND_API_KEY is not configured. Please set it in Supabase Dashboard → Project Settings → Edge Functions → Secrets");
+    }
+    
+    console.log("RESEND_API_KEY found:", RESEND_API_KEY.substring(0, 8) + "...");
+    
+    const appUrl = (Deno.env.get("APP_URL") || Deno.env.get("SITE_URL") || "http://localhost:8080").replace(/\/$/, "");
+    const sessionsUrl = `${appUrl}/sessions`;
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    const { session_id, event_type }: NotificationPayload = await req.json();
+    if (!session_id || !event_type) throw new Error("session_id and event_type are required");
+
+    // Fetch session
+    const { data: session } = await supabaseAdmin
+      .from("sessions")
+      .select("*")
+      .eq("id", session_id)
+      .single();
+    if (!session) throw new Error("Session not found");
+
+    // Fetch both profiles and emails
+    const [{ data: studentProfile }, { data: tutorProfile }, { data: studentAuth }, { data: tutorAuth }] = await Promise.all([
+      supabaseAdmin.from("profiles").select("full_name").eq("user_id", session.student_id).single(),
+      supabaseAdmin.from("profiles").select("full_name").eq("user_id", session.tutor_id).single(),
+      supabaseAdmin.auth.admin.getUserById(session.student_id),
+      supabaseAdmin.auth.admin.getUserById(session.tutor_id),
+    ]);
+
+    const studentName = studentProfile?.full_name || "Student";
+    const tutorName = tutorProfile?.full_name || "Tutor";
+    const studentEmail = studentAuth?.user?.email;
+    const tutorEmail = tutorAuth?.user?.email;
+
+    // Determine recipients based on event type
+    const recipients: Array<{ userId: string; email: string; name: string; isTutor: boolean; otherName: string }> = [];
+
+    if (event_type === "booked") {
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+    } else if (event_type === "confirmed" || event_type === "declined") {
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+    } else if (event_type === "paid") {
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+    } else if (event_type === "completed") {
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+    } else if (event_type === "cancelled") {
+      if (tutorEmail) recipients.push({ userId: session.tutor_id, email: tutorEmail, name: tutorName, isTutor: true, otherName: studentName });
+      if (studentEmail) recipients.push({ userId: session.student_id, email: studentEmail, name: studentName, isTutor: false, otherName: tutorName });
+    }
+
+    if (recipients.length === 0) {
+      throw new Error(`No recipient email found for event '${event_type}' on session '${session_id}'`);
+    }
+
+    // Send emails and create in-app notifications in parallel
+    const results = await Promise.all(
+      recipients.map(async (r) => {
+        // Create in-app notification
+        const inAppContent = getInAppMessage(event_type, r.otherName, r.isTutor);
+        const notificationPromise = supabaseAdmin.from("notifications").insert({
+          user_id: r.userId,
+          title: inAppContent.title,
+          message: inAppContent.message,
+          type: "session",
+          link: "/sessions",
+        });
+
+        // Send email
+        const html = buildEmailHtml(
+          event_type, r.name, r.otherName,
+          session.subject, session.session_date, session.start_time, session.end_time,
+          r.isTutor,
+          sessionsUrl
+        );
+
+        const emailPromise = fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from: "Tutor Quest <onboarding@resend.dev>",
+            to: [r.email],
+            subject: `${SUBJECT_MAP[event_type]} — ${session.subject}`,
+            html,
+          }),
+        });
+
+        const [notifResult, emailRes] = await Promise.all([notificationPromise, emailPromise]);
+        const emailData = await emailRes.json();
+
+        console.log("Email API response:", {
+          status: emailRes.status,
+          ok: emailRes.ok,
+          data: emailData,
+          recipient: r.email,
+          event_type
+        });
+
+        const emailError = emailRes.ok
+          ? null
+          : emailData?.message || emailData?.error || emailData?.name || "Email provider rejected the request";
+
+        if (emailError) {
+          console.error("Email delivery failed", {
+            recipient: r.email,
+            event_type,
+            session_id,
+            emailError,
+            fullResponse: emailData
+          });
+        }
+
+        return { 
+          email: r.email, 
+          emailSuccess: emailRes.ok, 
+          emailData,
+          emailError,
+          notificationCreated: !notifResult.error 
+        };
+      })
+    );
+
+    const failedEmails = results.filter((r) => !r.emailSuccess);
+    const allEmailsFailed = failedEmails.length === results.length;
+
+    // Always return 200 status since in-app notifications work even if emails fail
+    // The frontend will check the success field and failedEmails array
+    return new Response(
+      JSON.stringify({
+        success: failedEmails.length === 0,
+        error: allEmailsFailed ? "Email delivery failed for all recipients" : null,
+        results,
+        failedEmails,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
+  } catch (error: any) {
+    console.error("Notification error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
+});

@@ -1,62 +1,42 @@
-import { useState, useRef, useMemo, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, MapPin, BookOpen, ArrowRight, CheckCircle2 } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { Search, MapPin, ShieldCheck, CalendarCheck, Lock } from "lucide-react";
+import { motion } from "framer-motion";
+import { ScrollReveal } from "./ScrollReveal";
 
-/* Floating orbs config — generated once */
-const ORB_COUNT = 6;
+const trustItems = [
+  { icon: ShieldCheck, label: "Verified Tutors", color: "#ef4444" },
+  { icon: MapPin, label: "Local & Nearby", color: "#ef4444" },
+  { icon: CalendarCheck, label: "Easy Booking", color: "#ef4444" },
+  { icon: Lock, label: "Safe & Secure", color: "#3b82f6" },
+];
 
-function generateOrbs() {
-  return Array.from({ length: ORB_COUNT }, (_, i) => ({
-    id: i,
-    size: 120 + Math.random() * 260,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    duration: 18 + Math.random() * 14,
-    delay: Math.random() * -20,
-    hue: i % 2 === 0 ? "var(--primary)" : "var(--accent)",
-    opacity: 0.08 + Math.random() * 0.07,
-  }));
-}
+const HandDrawnUnderline = () => (
+  <svg className="absolute -bottom-3 left-0 w-[105%] h-3 text-[#ef4444]" preserveAspectRatio="none" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,8 Q100,0 200,8" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round" />
+  </svg>
+);
+
+const PencilDoodle = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute -bottom-10 left-1/2 -translate-x-4 rotate-[15deg]">
+    <path d="M16 4L20 8L8 20H4V16L16 4Z" fill="#facc15" stroke="#2d2d2d" strokeWidth="1.5" strokeLinejoin="round"/>
+    <path d="M16 4L20 8L18 10L14 6L16 4Z" fill="#ef4444" stroke="#2d2d2d" strokeWidth="1.5" strokeLinejoin="round"/>
+    <path d="M8 20L4 20L4 16L7 17L8 20Z" fill="#fef3c7" stroke="#2d2d2d" strokeWidth="1.5" strokeLinejoin="round"/>
+    <path d="M4 20L5.5 18.5" stroke="#2d2d2d" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const [subject, setSubject] = useState("");
   const [location, setLocation] = useState("");
-  const sectionRef = useRef<HTMLElement>(null);
-  const orbs = useMemo(generateOrbs, []);
-  const [stats, setStats] = useState({ students: 0, tutors: 0 });
+  const [stats, setStats] = useState({ students: 0 });
 
-  // Fetch real stats
   useEffect(() => {
-    const fetchStats = async () => {
-      const { count: studentCount } = await supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("role", "student");
-      const { count: tutorCount } = await supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("role", "tutor");
-      setStats({
-        students: studentCount || 0,
-        tutors: tutorCount || 0,
-      });
-    };
-    fetchStats();
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student")
+      .then(({ count }) => setStats({ students: count || 0 }));
   }, []);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const textY = useTransform(scrollYProgress, [0, 1], ["0px", "-40px"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -65,161 +45,146 @@ const HeroSection = () => {
     navigate(`/find-tutors?${params.toString()}`);
   };
 
-  // Dynamic trust items
-  const trustItems = [
-    `${stats.students > 0 ? stats.students.toLocaleString() + "+" : "10,000+"} students`,
-    "Verified tutors",
-    "Secure payments",
-  ];
-
   const badgeText = stats.students > 0
-    ? `Trusted by ${stats.students.toLocaleString()}+ students across India`
-    : "Trusted by 10,000+ students across India";
+    ? `Trusted by ${stats.students.toLocaleString()}+ students`
+    : "Trusted by 6+ students";
 
   return (
-    <section ref={sectionRef} id="home" className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24">
-      {/* Parallax gradient base */}
-      <motion.div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-secondary/50 via-background to-background"
-        style={{ y: bgY }}
+    <section id="home" className="relative pb-12 pt-28 md:pt-32 bg-transparent overflow-hidden">
+      
+      {/* Floating Shapes */}
+      {/* Dashed line top left */}
+      <svg className="absolute left-[8%] top-24 hidden md:block opacity-60" width="100" height="80" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 70 Q 30 40, 70 50 T 90 10" stroke="#2d2d2d" strokeWidth="2" strokeDasharray="5 5" fill="none" strokeLinecap="round" />
+      </svg>
+      {/* Pink blob mid left */}
+      <motion.div 
+        className="pointer-events-none absolute left-[12%] top-60 hidden md:block w-14 h-14 bg-[#fecdd3] border-[3px] border-[#2d2d2d]"
+        style={{ borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px" }}
+        animate={{ y: [0, -10, 0], rotate: [-5, 5, -5] }} 
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} 
       />
+      {/* Yellow square top right */}
+      <motion.div 
+        className="pointer-events-none absolute right-[10%] top-48 hidden md:block w-20 h-20 bg-[#fef3c7] border-[3px] border-[#2d2d2d]"
+        style={{ borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px" }}
+        animate={{ y: [0, -15, 0], rotate: [5, -5, 5] }} 
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} 
+      />
+      {/* 4-pointed star mid right */}
+      <svg className="absolute right-[15%] top-72 hidden md:block" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C12 0 12 10 24 12C24 12 14 12 12 24C12 24 12 14 0 12C0 12 10 12 12 0Z" fill="white" stroke="#2d2d2d" strokeWidth="2" />
+      </svg>
+      {/* Tiny red star right edge */}
+      <svg className="absolute right-[8%] top-96 hidden md:block" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C12 0 12 10 24 12C24 12 14 12 12 24C12 24 12 14 0 12C0 12 10 12 12 0Z" fill="#ef4444" />
+      </svg>
 
-      {/* Floating orbs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        {orbs.map((orb) => (
-          <motion.div
-            key={orb.id}
-            className="absolute rounded-full blur-3xl will-change-transform"
-            style={{
-              width: orb.size,
-              height: orb.size,
-              left: `${orb.x}%`,
-              top: `${orb.y}%`,
-              background: `hsl(${orb.hue} / ${orb.opacity})`,
-            }}
-            animate={{
-              x: [0, 40, -30, 20, 0],
-              y: [0, -35, 25, -15, 0],
-              scale: [1, 1.15, 0.9, 1.05, 1],
-            }}
-            transition={{
-              duration: orb.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: orb.delay,
-            }}
-          />
-        ))}
-        {/* Mesh gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.04] via-transparent to-accent/[0.06]" />
-      </div>
-
-      <div className="container relative">
-        <motion.div className="mx-auto max-w-3xl text-center" style={{ y: textY, opacity }}>
+      <div className="container max-w-[1000px] mx-auto px-6 relative z-10 text-center flex flex-col items-center">
+        <ScrollReveal variant="fadeUp" className="w-full flex flex-col items-center">
+          
           {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 16, rotateX: 20 }}
-            animate={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ perspective: 800 }}
+          <span 
+            className="bg-[#fef3c7] text-[#2d2d2d] px-5 py-2 text-[15px] font-patrick font-bold tracking-wide flex items-center gap-2.5 shadow-[3px_3px_0px_#2d2d2d] border-[2px] border-[#2d2d2d] mb-6"
+            style={{ borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px", transform: "rotate(-1deg)" }}
           >
-            <span className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-body-sm font-medium text-muted-foreground shadow-soft">
-              <span className="h-2 w-2 rounded-full bg-accent" />
-              {badgeText}
-            </span>
-          </motion.div>
+            <ShieldCheck className="w-5 h-5 text-[#ef4444]" strokeWidth={2.5} /> 
+            {badgeText}
+          </span>
 
-          {/* Heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 24, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-            className="mt-8 text-2xl font-bold text-foreground sm:text-display-lg md:text-[3.5rem]"
-          >
-            Find the perfect tutor,{" "}
-            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          {/* Main Headline */}
+          <h1 className="text-[2.75rem] md:text-6xl lg:text-[4.5rem] font-kalam font-bold text-[#2d2d2d] leading-[1.1] tracking-tight relative z-10">
+            Find the perfect tutor,
+            <br />
+            <span className="text-[#ef4444] relative inline-block mt-3 md:mt-4">
               right in your neighborhood
+              <HandDrawnUnderline />
             </span>
-          </motion.h1>
+            <PencilDoodle />
+          </h1>
 
-          {/* Subheading */}
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto mt-6 max-w-xl text-body-lg text-muted-foreground"
-          >
-            Connect with qualified, verified tutors for personalized learning.
-            Search by subject, location, and schedule.
-          </motion.p>
+          {/* Subtitle */}
+          <p className="mt-8 md:mt-10 text-gray-600 font-patrick text-sm md:text-[17px] max-w-xl mx-auto leading-relaxed">
+            Connect with qualified, verified tutors for personalized learning. <br className="hidden md:block" /> Search by subject, location, and schedule.
+          </p>
 
-          {/* Search Bar - 3D entrance */}
-          <motion.div
-            initial={{ opacity: 0, y: 30, rotateX: 15 }}
-            animate={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ duration: 0.6, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-            className="mx-auto mt-10 max-w-2xl"
-            style={{ perspective: 1000 }}
+          {/* Search Bar Container */}
+          <div 
+            className="mt-8 w-full max-w-[850px] bg-white border-[3px] border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] p-2 flex flex-col md:flex-row items-center gap-2 relative z-20"
+            style={{ borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px" }}
           >
-            <div className="flex flex-col gap-2 rounded-2xl border bg-card p-2 shadow-card sm:flex-row sm:items-center transition-shadow duration-300 hover:shadow-card-hover">
-              <div className="relative flex-1">
-                <BookOpen className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Subject (e.g. Mathematics)"
-                  className="border-0 pl-10 shadow-none focus-visible:ring-0 h-11"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                />
-              </div>
-              <div className="hidden h-6 w-px bg-border sm:block" />
-              <div className="relative flex-1">
-                <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Location (e.g. Delhi)"
-                  className="border-0 pl-10 shadow-none focus-visible:ring-0 h-11"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-              </div>
-              <Button className="gap-2 rounded-xl px-6 h-11" onClick={handleSearch}>
-                <Search className="h-4 w-4" />
-                Search
-              </Button>
+            {/* Subject Input */}
+            <div className="flex-1 flex items-center px-4 py-2.5 bg-white border-[2px] border-gray-200 rounded-[8px] w-full">
+              <Search className="w-5 h-5 text-gray-400 shrink-0" strokeWidth={2.5} />
+              <input 
+                type="text" 
+                placeholder="Subject (e.g. Mathematics)" 
+                className="w-full bg-transparent border-none focus:outline-none px-3 font-patrick text-base text-[#2d2d2d] placeholder:text-gray-400"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              />
             </div>
-          </motion.div>
+            
+            {/* Location Input */}
+            <div className="flex-1 flex items-center px-4 py-2.5 bg-white border-[2px] border-gray-200 rounded-[8px] w-full">
+              <MapPin className="w-5 h-5 text-[#ef4444] shrink-0" strokeWidth={2.5} />
+              <input 
+                type="text" 
+                placeholder="Location (e.g. Delhi)" 
+                className="w-full bg-transparent border-none focus:outline-none px-3 font-patrick text-base text-[#2d2d2d] placeholder:text-gray-400"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+            
+            {/* Search Button */}
+            <button 
+              onClick={handleSearch}
+              className="w-full md:w-auto bg-white text-[#2d2d2d] font-sans text-sm font-bold px-8 py-3 border-[2px] border-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] hover:-translate-y-0.5 hover:bg-gray-50 transition-all shrink-0"
+              style={{ borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px" }}
+            >
+              Search
+            </button>
+          </div>
 
           {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="mt-8 flex flex-wrap items-center justify-center gap-4"
-          >
-            <Button size="lg" className="gap-2 rounded-full px-8" asChild>
-              <Link to="/find-tutors">
-                Find Tutors <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="rounded-full px-8" asChild>
-              <Link to="/signup">Become a Tutor</Link>
-            </Button>
-          </motion.div>
+          <div className="mt-8 flex flex-wrap justify-center gap-5 relative z-20">
+            <motion.button 
+              whileHover={{ scale: 1.05, rotate: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/find-tutors')} 
+              className="bg-white text-[#2d2d2d] font-sans text-sm font-bold px-8 py-3.5 border-[3px] border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] hover:-translate-y-0.5 hover:bg-gray-50 transition-all flex items-center gap-2"
+              style={{ borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px", transform: "rotate(-1deg)" }}
+            >
+              Find Tutors <span className="text-xl leading-none font-normal">→</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05, rotate: 2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/signup')} 
+              className="bg-[#ffccb3] text-[#2d2d2d] font-sans text-sm font-bold px-8 py-3.5 border-[3px] border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] hover:-translate-y-0.5 hover:opacity-90 transition-all"
+              style={{ borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px", transform: "rotate(1deg)" }}
+            >
+              Become a Tutor
+            </motion.button>
+          </div>
 
           {/* Trust Indicators */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            className="mt-10 flex flex-wrap items-center justify-center gap-6"
-          >
-            {trustItems.map((item) => (
-              <div key={item} className="flex items-center gap-2 text-body-sm text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-accent" />
-                {item}
-              </div>
+          <div className="mt-12 pt-4 flex flex-wrap justify-center items-center gap-4 md:gap-8 pb-4">
+            {trustItems.map((item, idx) => (
+              <motion.div 
+                key={idx} 
+                className="flex items-center gap-2 cursor-default"
+                whileHover={{ scale: 1.05, rotate: idx % 2 === 0 ? 2 : -2 }}
+              >
+                <item.icon className="w-[18px] h-[18px]" style={{ color: item.color }} strokeWidth={2.5} />
+                <span className="font-patrick font-medium text-[15px] text-[#2d2d2d] tracking-wide">{item.label}</span>
+                {idx < trustItems.length - 1 && <span className="hidden md:inline-block ml-4 md:ml-8 text-gray-300">|</span>}
+              </motion.div>
             ))}
-          </motion.div>
-        </motion.div>
+          </div>
+
+        </ScrollReveal>
       </div>
     </section>
   );

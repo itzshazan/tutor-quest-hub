@@ -18,14 +18,6 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-vi.mock("@/integrations/lovable", () => ({
-  lovable: {
-    auth: {
-      signInWithOAuth: vi.fn(),
-    },
-  },
-}));
-
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({
     toast: vi.fn(),

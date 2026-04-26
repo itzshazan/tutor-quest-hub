@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, ArrowUpRight, Clock, CheckCircle, XCircle, AlertCircle, Wallet } from "lucide-react";
+import { IndianRupee, ArrowUpRight, Clock, CheckCircle, XCircle, AlertCircle, Wallet, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -38,14 +38,14 @@ interface Dispute {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; className: string }> = {
-  pending: { label: "Pending", icon: Clock, className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  approved: { label: "Approved", icon: CheckCircle, className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
-  completed: { label: "Completed", icon: CheckCircle, className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  rejected: { label: "Rejected", icon: XCircle, className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
-  open: { label: "Open", icon: AlertCircle, className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  under_review: { label: "Under Review", icon: Clock, className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
-  resolved: { label: "Resolved", icon: CheckCircle, className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  closed: { label: "Closed", icon: XCircle, className: "bg-muted text-muted-foreground" },
+  pending: { label: "Pending", icon: Clock, className: "bg-[#fff9c4] text-[#a07d1c] border-2 border-hd-ink" },
+  approved: { label: "Approved", icon: CheckCircle, className: "bg-[#d0e8ff] text-[#2d5da1] border-2 border-hd-ink" },
+  completed: { label: "Completed", icon: CheckCircle, className: "bg-[#E5F6D3] text-[#4a7a2a] border-2 border-hd-ink" },
+  rejected: { label: "Rejected", icon: XCircle, className: "bg-[#ffe0e0] text-[#c0392b] border-2 border-hd-ink" },
+  open: { label: "Open", icon: AlertCircle, className: "bg-[#fff9c4] text-[#a07d1c] border-2 border-hd-ink" },
+  under_review: { label: "Under Review", icon: Clock, className: "bg-[#d0e8ff] text-[#2d5da1] border-2 border-hd-ink" },
+  resolved: { label: "Resolved", icon: CheckCircle, className: "bg-[#E5F6D3] text-[#4a7a2a] border-2 border-hd-ink" },
+  closed: { label: "Closed", icon: XCircle, className: "bg-hd-muted text-hd-ink border-2 border-hd-ink" },
 };
 
 export default function TutorEarnings() {
@@ -92,7 +92,7 @@ export default function TutorEarnings() {
       .eq("tutor_id", user.id);
 
     if (payments) {
-      const captured = payments.filter(p => p.payment_status === "captured");
+      const captured = payments.filter(p => p.payment_status === "completed");
       const pending = payments.filter(p => p.payment_status === "authorized" || p.payment_status === "pending");
       
       setTotalEarnings(captured.reduce((sum, p) => sum + Number(p.tutor_earnings), 0));
@@ -201,7 +201,7 @@ export default function TutorEarnings() {
     return (
       <DashboardLayout role="tutor">
         <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#ff5a5a] border-t-transparent" />
         </div>
       </DashboardLayout>
     );
@@ -209,33 +209,42 @@ export default function TutorEarnings() {
 
   return (
     <DashboardLayout role="tutor">
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-5 max-w-5xl w-full mx-auto relative z-10">
+        {/* Floating doodles */}
+        <div className="absolute top-0 right-6 -z-10 opacity-25 pointer-events-none animate-float hidden md:block">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#90be6d" strokeWidth="2" strokeLinecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div className="absolute top-40 right-2 -z-10 opacity-20 pointer-events-none animate-wiggle hidden lg:block">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffd166" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Earnings & Withdrawals</h1>
-            <p className="text-muted-foreground">Manage your earnings and request payouts</p>
+            <h1 className="font-kalam text-2xl md:text-3xl font-bold text-hd-ink mb-1">Earnings & Withdrawals</h1>
+            <p className="text-hd-ink/70 font-medium text-sm">Manage your earnings and request payouts 💰</p>
           </div>
           <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Wallet className="h-4 w-4" />
+              <Button className="bg-[#90be6d] text-white hover:bg-[#7aae57] border-2 border-hd-ink shadow-[3px_3px_0px_0px_#2d2d2d] rounded-xl font-bold text-sm h-10 px-5 transition-all hover:-translate-y-0.5">
+                <Wallet className="mr-1.5 h-4 w-4" />
                 Request Withdrawal
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="border-2 border-hd-ink rounded-xl shadow-[6px_6px_0px_0px_#2d2d2d] bg-[#fdfbf7]">
               <DialogHeader>
-                <DialogTitle>Request Withdrawal</DialogTitle>
-                <DialogDescription>
-                  Enter the amount you'd like to withdraw. Minimum withdrawal is $10.
+                <DialogTitle className="font-kalam text-xl text-hd-ink">Request Withdrawal</DialogTitle>
+                <DialogDescription className="text-hd-ink/70 font-medium">
+                  Enter the amount you'd like to withdraw. Minimum withdrawal is ₹10.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Available Balance</Label>
-                  <p className="text-2xl font-bold text-foreground">${availableBalance.toFixed(2)}</p>
+                  <Label className="font-semibold text-hd-ink">Available Balance</Label>
+                  <p className="font-kalam text-3xl font-bold text-[#4a7a2a]">₹{availableBalance.toFixed(2)}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Withdrawal Amount ($)</Label>
+                  <Label htmlFor="amount" className="font-semibold text-hd-ink">Withdrawal Amount (₹)</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -245,13 +254,14 @@ export default function TutorEarnings() {
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
                     placeholder="Enter amount"
+                    className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] font-medium"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleWithdraw} disabled={withdrawLoading}>
-                  {withdrawLoading ? "Submitting..." : "Submit Request"}
+                <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)} className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] font-bold">Cancel</Button>
+                <Button onClick={handleWithdraw} disabled={withdrawLoading} className="bg-[#90be6d] text-white hover:bg-[#7aae57] border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] font-bold">
+                  {withdrawLoading ? <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Submitting...</> : "Submit Request"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -259,75 +269,99 @@ export default function TutorEarnings() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Available Balance</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          {/* Available Balance */}
+          <Card className="border-2 border-hd-ink rounded-xl shadow-[3px_3px_0px_0px_#2d2d2d] bg-white overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-bold text-hd-ink/70 uppercase tracking-wide">Available Balance</CardTitle>
+              <div className="rounded-lg bg-[#E5F6D3] p-1.5 border border-hd-ink group-hover:scale-110 transition-transform">
+                <IndianRupee className="h-4 w-4 text-[#4a7a2a]" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-foreground">${availableBalance.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">Ready to withdraw</p>
+            <CardContent className="pb-3 px-4">
+              <p className="font-kalam text-3xl font-bold text-hd-ink leading-none">₹{availableBalance.toFixed(2)}</p>
+              <p className="text-[11px] font-semibold text-[#4a7a2a] mt-1">Ready to withdraw</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+
+          {/* Pending */}
+          <Card className="border-2 border-hd-ink rounded-xl shadow-[3px_3px_0px_0px_#2d2d2d] bg-white overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-bold text-hd-ink/70 uppercase tracking-wide">Pending</CardTitle>
+              <div className="rounded-lg bg-[#fff9c4] p-1.5 border border-hd-ink group-hover:scale-110 transition-transform">
+                <Clock className="h-4 w-4 text-[#d4a017]" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-foreground">${pendingBalance.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">Awaiting session completion</p>
+            <CardContent className="pb-3 px-4">
+              <p className="font-kalam text-3xl font-bold text-hd-ink leading-none">₹{pendingBalance.toFixed(2)}</p>
+              <p className="text-[11px] font-semibold text-[#d4a017] mt-1">Awaiting session completion</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Earnings</CardTitle>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+
+          {/* Total Earnings */}
+          <Card className="border-2 border-hd-ink rounded-xl shadow-[3px_3px_0px_0px_#2d2d2d] bg-white overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-bold text-hd-ink/70 uppercase tracking-wide">Total Earnings</CardTitle>
+              <div className="rounded-lg bg-[#2d5da1]/15 p-1.5 border border-hd-ink group-hover:scale-110 transition-transform">
+                <ArrowUpRight className="h-4 w-4 text-[#2d5da1]" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-foreground">${totalEarnings.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">All time earnings</p>
+            <CardContent className="pb-3 px-4">
+              <p className="font-kalam text-3xl font-bold text-hd-ink leading-none">₹{totalEarnings.toFixed(2)}</p>
+              <p className="text-[11px] font-semibold text-[#2d5da1] mt-1">All time earnings</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs for Withdrawals and Disputes */}
+        {/* Tabs */}
         <Tabs defaultValue="withdrawals">
-          <TabsList>
-            <TabsTrigger value="withdrawals">Withdrawal History</TabsTrigger>
-            <TabsTrigger value="disputes">Disputes</TabsTrigger>
+          <TabsList className="bg-white border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] p-1 h-auto">
+            <TabsTrigger
+              value="withdrawals"
+              className="rounded-lg font-bold text-sm px-4 py-2 data-[state=active]:bg-[#fff9c4] data-[state=active]:text-hd-ink data-[state=active]:border-2 data-[state=active]:border-hd-ink data-[state=active]:shadow-[2px_2px_0px_0px_#2d2d2d] text-hd-ink/60 transition-all"
+            >
+              Withdrawal History
+            </TabsTrigger>
+            <TabsTrigger
+              value="disputes"
+              className="rounded-lg font-bold text-sm px-4 py-2 data-[state=active]:bg-[#ff5a5a]/15 data-[state=active]:text-hd-ink data-[state=active]:border-2 data-[state=active]:border-hd-ink data-[state=active]:shadow-[2px_2px_0px_0px_#2d2d2d] text-hd-ink/60 transition-all"
+            >
+              Disputes
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="withdrawals" className="space-y-4">
+          <TabsContent value="withdrawals" className="space-y-4 mt-4">
             {withdrawals.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Wallet className="h-12 w-12 text-muted-foreground/50" />
-                  <p className="mt-4 text-muted-foreground">No withdrawal requests yet</p>
+              <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white">
+                <CardContent className="flex flex-col items-center justify-center py-14">
+                  <div className="rounded-xl bg-[#E5F6D3] p-4 border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] mb-4">
+                    <Wallet className="h-8 w-8 text-[#4a7a2a]" />
+                  </div>
+                  <p className="font-kalam text-lg font-bold text-hd-ink">No withdrawal requests yet</p>
+                  <p className="text-xs font-medium text-hd-ink/60 mt-1">Your withdrawal history will appear here 💸</p>
                 </CardContent>
               </Card>
             ) : (
-              <Card>
+              <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white overflow-hidden">
                 <CardContent className="p-0">
-                  <div className="divide-y">
+                  <div className="divide-y-2 divide-dashed divide-hd-ink/30">
                     {withdrawals.map((withdrawal) => {
                       const config = STATUS_CONFIG[withdrawal.status];
                       const Icon = config?.icon || Clock;
                       return (
-                        <div key={withdrawal.id} className="flex items-center justify-between p-4">
+                        <div key={withdrawal.id} className="flex items-center justify-between p-4 hover:bg-[#fdfbf7] transition-colors">
                           <div className="flex items-center gap-3">
-                            <div className={cn("rounded-full p-2", config?.className)}>
+                            <div className={cn("rounded-lg p-2 border shadow-sm", config?.className)}>
                               <Icon className="h-4 w-4" />
                             </div>
                             <div>
-                              <p className="font-medium text-foreground">${withdrawal.amount.toFixed(2)}</p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="font-bold text-hd-ink text-sm">₹{withdrawal.amount.toFixed(2)}</p>
+                              <p className="text-[11px] font-semibold text-hd-ink/60">
                                 {format(new Date(withdrawal.requested_at), "MMM d, yyyy")}
                               </p>
                             </div>
                           </div>
-                          <Badge className={cn(config?.className)}>{config?.label}</Badge>
+                          <Badge className={cn("font-bold text-[10px] rounded-md shadow-[1px_1px_0px_0px_#2d2d2d]", config?.className)}>{config?.label}</Badge>
                         </div>
                       );
                     })}
@@ -337,47 +371,49 @@ export default function TutorEarnings() {
             )}
           </TabsContent>
 
-          <TabsContent value="disputes" className="space-y-4">
+          <TabsContent value="disputes" className="space-y-4 mt-4">
             <div className="flex justify-end">
               <Dialog open={disputeDialogOpen} onOpenChange={setDisputeDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <AlertCircle className="h-4 w-4" />
+                  <Button variant="outline" className="bg-white text-hd-ink hover:bg-[#FFF0F1] border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl font-bold text-sm h-10 px-4 transition-all hover:-translate-y-0.5">
+                    <AlertCircle className="mr-1.5 h-4 w-4 text-[#ff5a5a]" />
                     Create Dispute
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="border-2 border-hd-ink rounded-xl shadow-[6px_6px_0px_0px_#2d2d2d] bg-[#fdfbf7]">
                   <DialogHeader>
-                    <DialogTitle>Create a Dispute</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="font-kalam text-xl text-hd-ink">Create a Dispute</DialogTitle>
+                    <DialogDescription className="text-hd-ink/70 font-medium">
                       Describe your issue and our team will review it.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="reason">Reason</Label>
+                      <Label htmlFor="reason" className="font-semibold text-hd-ink">Reason</Label>
                       <Input
                         id="reason"
                         value={disputeReason}
                         onChange={(e) => setDisputeReason(e.target.value)}
                         placeholder="e.g., Payment issue, Session dispute"
+                        className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] font-medium"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description (optional)</Label>
+                      <Label htmlFor="description" className="font-semibold text-hd-ink">Description (optional)</Label>
                       <Textarea
                         id="description"
                         value={disputeDescription}
                         onChange={(e) => setDisputeDescription(e.target.value)}
                         placeholder="Provide more details about your issue..."
                         rows={4}
+                        className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] font-medium"
                       />
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setDisputeDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateDispute} disabled={disputeLoading}>
-                      {disputeLoading ? "Submitting..." : "Submit Dispute"}
+                    <Button variant="outline" onClick={() => setDisputeDialogOpen(false)} className="border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] font-bold">Cancel</Button>
+                    <Button onClick={handleCreateDispute} disabled={disputeLoading} className="bg-[#ff5a5a] text-white hover:bg-[#e04848] border-2 border-hd-ink rounded-xl shadow-[2px_2px_0px_0px_#2d2d2d] font-bold">
+                      {disputeLoading ? <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Submitting...</> : "Submit Dispute"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -385,42 +421,45 @@ export default function TutorEarnings() {
             </div>
 
             {disputes.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground/50" />
-                  <p className="mt-4 text-muted-foreground">No disputes filed</p>
+              <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white">
+                <CardContent className="flex flex-col items-center justify-center py-14">
+                  <div className="rounded-xl bg-[#fff9c4] p-4 border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] mb-4">
+                    <AlertCircle className="h-8 w-8 text-[#d4a017]" />
+                  </div>
+                  <p className="font-kalam text-lg font-bold text-hd-ink">No disputes filed</p>
+                  <p className="text-xs font-medium text-hd-ink/60 mt-1">Hopefully you'll never need this! ✌️</p>
                 </CardContent>
               </Card>
             ) : (
-              <Card>
+              <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white overflow-hidden">
                 <CardContent className="p-0">
-                  <div className="divide-y">
+                  <div className="divide-y-2 divide-dashed divide-hd-ink/30">
                     {disputes.map((dispute) => {
                       const config = STATUS_CONFIG[dispute.status];
                       const Icon = config?.icon || AlertCircle;
                       return (
-                        <div key={dispute.id} className="p-4">
-                          <div className="flex items-start justify-between">
+                        <div key={dispute.id} className="p-4 hover:bg-[#fdfbf7] transition-colors">
+                          <div className="flex items-start justify-between gap-3">
                             <div className="flex items-start gap-3">
-                              <div className={cn("rounded-full p-2", config?.className)}>
+                              <div className={cn("rounded-lg p-2 border shadow-sm shrink-0", config?.className)}>
                                 <Icon className="h-4 w-4" />
                               </div>
-                              <div>
-                                <p className="font-medium text-foreground">{dispute.reason}</p>
+                              <div className="min-w-0">
+                                <p className="font-bold text-sm text-hd-ink">{dispute.reason}</p>
                                 {dispute.description && (
-                                  <p className="mt-1 text-sm text-muted-foreground">{dispute.description}</p>
+                                  <p className="mt-0.5 text-xs font-medium text-hd-ink/60 line-clamp-2">{dispute.description}</p>
                                 )}
-                                <p className="mt-2 text-xs text-muted-foreground">
+                                <p className="mt-1.5 text-[10px] font-bold text-hd-ink/50">
                                   Opened {format(new Date(dispute.created_at), "MMM d, yyyy")}
                                 </p>
                               </div>
                             </div>
-                            <Badge className={cn(config?.className)}>{config?.label}</Badge>
+                            <Badge className={cn("font-bold text-[10px] rounded-md shadow-[1px_1px_0px_0px_#2d2d2d] shrink-0", config?.className)}>{config?.label}</Badge>
                           </div>
                           {dispute.resolution && (
-                            <div className="mt-3 rounded-lg bg-muted p-3">
-                              <p className="text-sm font-medium text-foreground">Resolution:</p>
-                              <p className="text-sm text-muted-foreground">{dispute.resolution}</p>
+                            <div className="mt-3 rounded-lg bg-[#E5F6D3]/50 border-2 border-hd-ink/20 p-3">
+                              <p className="text-xs font-bold text-hd-ink">Resolution:</p>
+                              <p className="text-xs font-medium text-hd-ink/70 mt-0.5">{dispute.resolution}</p>
                             </div>
                           )}
                         </div>

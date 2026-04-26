@@ -18,6 +18,7 @@ import {
   MapPin, Clock, Loader2, X, User, DollarSign, Pencil, Upload, FileText,
 } from "lucide-react";
 import { validateImageFile, validateDocumentFile } from "@/lib/validations";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const TIME_SLOTS = [
@@ -265,6 +266,13 @@ const TutorSetup = () => {
         .eq("user_id", user.id);
       if (profErr) throw profErr;
 
+      // Sync avatar to auth user metadata so it shows in headers/nav
+      if (avatarUrl) {
+        await supabase.auth.updateUser({
+          data: { avatar_url: avatarUrl },
+        });
+      }
+
       // Geocode the tutor's location using Nominatim (free)
       let geoLat: number | null = null;
       let geoLng: number | null = null;
@@ -328,73 +336,71 @@ const TutorSetup = () => {
   const stepTitles = ["Basic Info", "Teaching", "Availability", "Review"];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b bg-card">
-        <div className="container flex h-16 items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)} aria-label="Go back">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <GraduationCap className="h-7 w-7 text-primary" />
-          <span className="text-xl font-bold text-primary">Tutor Quest</span>
-          <span className="text-sm text-muted-foreground">— Complete Your Profile</span>
+    <DashboardLayout role="tutor">
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-6">
+          <h1 className="font-kalam text-2xl md:text-3xl font-bold text-hd-ink mb-1">Complete Your Profile</h1>
+          <p className="text-hd-ink/70 font-medium text-sm">Set up your tutor profile to start teaching ✏️</p>
         </div>
-      </div>
-
-      <div className="container max-w-2xl py-8">
         {/* Progress */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            {stepTitles.map((t, i) => (
+          <div className="flex items-center justify-between mb-3">
+            {stepTitles.map((t, i) => {
+              const stepColors = ["bg-[#ff5a5a]", "bg-[#2d5da1]", "bg-[#90be6d]", "bg-[#ffd166]"];
+              return (
               <button
                 key={t}
                 onClick={() => i + 1 < step && setStep(i + 1)}
-                className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+                className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${
                   i + 1 === step
-                    ? "text-primary"
+                    ? "text-hd-ink"
                     : i + 1 < step
-                    ? "text-secondary cursor-pointer"
-                    : "text-muted-foreground"
+                    ? "text-[#90be6d] cursor-pointer"
+                    : "text-hd-ink/40"
                 }`}
               >
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] transition-all ${
                     i + 1 < step
-                      ? "bg-secondary text-secondary-foreground"
+                      ? "bg-[#E5F6D3] text-[#4a7a2a]"
                       : i + 1 === step
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                      ? `${stepColors[i]} text-white`
+                      : "bg-white text-hd-ink/40"
                   }`}
                 >
                   {i + 1 < step ? <Check className="h-3 w-3" /> : i + 1}
                 </span>
                 <span className="hidden sm:inline">{t}</span>
               </button>
-            ))}
+              );
+            })}
           </div>
-          <Progress value={(step / 4) * 100} className="h-2" />
+          <div className="h-2.5 rounded-full border-2 border-hd-ink bg-white shadow-[2px_2px_0px_0px_#2d2d2d] overflow-hidden">
+            <div className="h-full bg-[#ff5a5a] rounded-full transition-all duration-500" style={{ width: `${(step / 4) * 100}%` }} />
+          </div>
         </div>
 
         {/* Step 1: Basic Info */}
-        {step === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <User className="h-5 w-5 text-primary" /> Basic Information
+         {step === 1 && (
+          <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white">
+            <CardHeader className="border-b-2 border-hd-ink border-dashed">
+              <CardTitle className="font-kalam text-xl flex items-center gap-2 text-hd-ink">
+                <div className="rounded-lg bg-[#ff5a5a]/20 p-1.5 border border-hd-ink"><User className="h-5 w-5 text-[#ff5a5a]" /></div> Basic Information
               </CardTitle>
-              <CardDescription>Tell students about yourself</CardDescription>
+              <p className="text-sm font-medium text-hd-ink/60">Tell students about yourself ✨</p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <Avatar className="h-20 w-20">
+                  <Avatar className="h-20 w-20 border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d]">
                     <AvatarImage src={form.avatarPreview} />
-                    <AvatarFallback className="bg-muted text-muted-foreground text-xl">
+                    <AvatarFallback className="bg-[#ffd166] text-hd-ink font-bold text-xl">
                       {user?.user_metadata?.full_name?.[0] || "T"}
                     </AvatarFallback>
                   </Avatar>
                   <label
                     htmlFor="avatar-upload"
-                    className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                    className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-[#ff5a5a] text-white border-2 border-hd-ink shadow-[1px_1px_0px_0px_#2d2d2d] hover:bg-[#e04848] transition-all"
                   >
                     <Camera className="h-3.5 w-3.5" />
                   </label>
@@ -500,13 +506,13 @@ const TutorSetup = () => {
         )}
 
         {/* Step 2: Teaching Info */}
-        {step === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <BookOpen className="h-5 w-5 text-primary" /> Teaching Information
+         {step === 2 && (
+          <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white">
+            <CardHeader className="border-b-2 border-hd-ink border-dashed">
+              <CardTitle className="font-kalam text-xl flex items-center gap-2 text-hd-ink">
+                <div className="rounded-lg bg-[#2d5da1]/15 p-1.5 border border-hd-ink"><BookOpen className="h-5 w-5 text-[#2d5da1]" /></div> Teaching Information
               </CardTitle>
-              <CardDescription>Select your subjects, grade levels, and set your rate</CardDescription>
+              <p className="text-sm font-medium text-hd-ink/60">Select your subjects, grade levels, and set your rate 📚</p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -518,8 +524,8 @@ const TutorSetup = () => {
                       <Badge
                         key={s.id}
                         variant={selected ? "default" : "outline"}
-                        className={`cursor-pointer transition-all ${
-                          selected ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-muted"
+                        className={`cursor-pointer transition-all border-2 border-hd-ink shadow-[1px_1px_0px_0px_#2d2d2d] rounded-lg ${
+                          selected ? "bg-[#ff5a5a] text-white hover:bg-[#e04848]" : "bg-white text-hd-ink hover:bg-[#fff9c4]"
                         }`}
                         onClick={() => toggleSubject(s.name)}
                       >
@@ -559,8 +565,8 @@ const TutorSetup = () => {
                       <Badge
                         key={level}
                         variant={selected ? "default" : "outline"}
-                        className={`cursor-pointer transition-all ${
-                          selected ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-muted"
+                        className={`cursor-pointer transition-all border-2 border-hd-ink shadow-[1px_1px_0px_0px_#2d2d2d] rounded-lg ${
+                          selected ? "bg-[#2d5da1] text-white hover:bg-[#24508c]" : "bg-white text-hd-ink hover:bg-[#fff9c4]"
                         }`}
                         onClick={() => toggleGradeLevel(level)}
                       >
@@ -584,13 +590,13 @@ const TutorSetup = () => {
         )}
 
         {/* Step 3: Location & Availability */}
-        {step === 3 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <MapPin className="h-5 w-5 text-primary" /> Location & Availability
+         {step === 3 && (
+          <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white">
+            <CardHeader className="border-b-2 border-hd-ink border-dashed">
+              <CardTitle className="font-kalam text-xl flex items-center gap-2 text-hd-ink">
+                <div className="rounded-lg bg-[#90be6d]/20 p-1.5 border border-hd-ink"><MapPin className="h-5 w-5 text-[#90be6d]" /></div> Location & Availability
               </CardTitle>
-              <CardDescription>Where and when can students reach you?</CardDescription>
+              <p className="text-sm font-medium text-hd-ink/60">Where and when can students reach you? 📍</p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -624,16 +630,16 @@ const TutorSetup = () => {
                 <Label className="flex items-center gap-2">
                   <Clock className="h-4 w-4" /> Weekly Availability *
                 </Label>
-                <div className="rounded-lg border overflow-hidden">
-                  <div className="grid grid-cols-[1fr_repeat(3,1fr)] text-xs font-medium bg-muted">
+                <div className="rounded-xl border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] overflow-hidden">
+                  <div className="grid grid-cols-[1fr_repeat(3,1fr)] text-xs font-bold bg-[#fff9c4]">
                     <div className="p-2" />
                     {TIME_SLOTS.map((t) => (
-                      <div key={t.label} className="p-2 text-center text-muted-foreground">{t.label}</div>
+                      <div key={t.label} className="p-2 text-center text-hd-ink/70">{t.label}</div>
                     ))}
                   </div>
                   {DAYS.map((day) => (
-                    <div key={day} className="grid grid-cols-[1fr_repeat(3,1fr)] border-t">
-                      <div className="p-2 text-sm font-medium">{day}</div>
+                    <div key={day} className="grid grid-cols-[1fr_repeat(3,1fr)] border-t-2 border-hd-ink/20">
+                      <div className="p-2 text-sm font-bold text-hd-ink">{day}</div>
                       {TIME_SLOTS.map((slot) => {
                         const active = form.availability.some((a) => a.day === day && a.start === slot.start);
                         return (
@@ -651,20 +657,20 @@ const TutorSetup = () => {
         )}
 
         {/* Step 4: Review */}
-        {step === 4 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-display">
-                <Check className="h-5 w-5 text-primary" /> Review Your Profile
+         {step === 4 && (
+          <Card className="border-[3px] border-hd-ink rounded-xl shadow-[4px_4px_0px_0px_#2d2d2d] bg-white">
+            <CardHeader className="border-b-2 border-hd-ink border-dashed">
+              <CardTitle className="font-kalam text-xl flex items-center gap-2 text-hd-ink">
+                <div className="rounded-lg bg-[#ffd166]/30 p-1.5 border border-hd-ink"><Check className="h-5 w-5 text-[#d4a017]" /></div> Review Your Profile
               </CardTitle>
-              <CardDescription>Make sure everything looks good before publishing</CardDescription>
+              <p className="text-sm font-medium text-hd-ink/60">Make sure everything looks good before publishing 🎉</p>
             </CardHeader>
             <CardContent className="space-y-6">
               <SummarySection title="Basic Info" onEdit={() => setStep(1)}>
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
+                  <Avatar className="h-12 w-12 border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d]">
                     <AvatarImage src={form.avatarPreview} />
-                    <AvatarFallback className="bg-muted">{user?.user_metadata?.full_name?.[0] || "T"}</AvatarFallback>
+                    <AvatarFallback className="bg-[#ffd166] text-hd-ink font-bold">{user?.user_metadata?.full_name?.[0] || "T"}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">{user?.user_metadata?.full_name}</p>
@@ -713,22 +719,22 @@ const TutorSetup = () => {
 
         {/* Navigation buttons */}
         <div className="mt-6 flex justify-between">
-          <Button variant="outline" onClick={() => step === 1 ? navigate(-1) : setStep((s) => s - 1)}>
+          <Button variant="outline" onClick={() => step === 1 ? navigate(-1) : setStep((s) => s - 1)} className="border-2 border-hd-ink bg-white text-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl font-bold hover:bg-[#fff9c4] hover:-translate-y-0.5 transition-all">
             <ArrowLeft className="mr-1 h-4 w-4" /> Back
           </Button>
           {step < 4 ? (
-            <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed()}>
+            <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed()} className="bg-[#ff5a5a] text-white hover:bg-[#e04848] border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl font-bold hover:-translate-y-0.5 transition-all disabled:opacity-50">
               Next <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={saving}>
+            <Button onClick={handleSubmit} disabled={saving} className="bg-[#90be6d] text-white hover:bg-[#7aae57] border-2 border-hd-ink shadow-[2px_2px_0px_0px_#2d2d2d] rounded-xl font-bold hover:-translate-y-0.5 transition-all disabled:opacity-50">
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
               {saving ? "Saving..." : "Publish Profile"}
             </Button>
           )}
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
@@ -741,10 +747,10 @@ const SummarySection = ({
   onEdit: () => void;
   children: React.ReactNode;
 }) => (
-  <div className="rounded-lg border p-4">
+  <div className="rounded-xl border-2 border-hd-ink p-4 bg-[#fdfbf7] shadow-[2px_2px_0px_0px_#2d2d2d]">
     <div className="flex items-center justify-between mb-2">
-      <h3 className="text-sm font-semibold">{title}</h3>
-      <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 gap-1 text-xs">
+      <h3 className="text-sm font-bold text-hd-ink">{title}</h3>
+      <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 gap-1 text-xs font-bold text-[#ff5a5a] hover:bg-[#FFF0F1] rounded-lg">
         <Pencil className="h-3 w-3" /> Edit
       </Button>
     </div>

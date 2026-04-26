@@ -1,30 +1,47 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { GraduationCap, Menu, X, LogOut, UserCog, MessageSquare, CalendarDays, LayoutDashboard, Sun, Moon } from "lucide-react";
+import {
+  Menu, X, LogOut, MessageSquare, CalendarDays, Bell, LayoutDashboard
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useTheme } from "next-themes";
-import { motion, useScroll, useSpring } from "framer-motion";
 import { NotificationBell } from "@/components/NotificationBell";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Find Tutors", href: "/find-tutors", isRoute: true },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Become a Tutor", href: "#become-tutor" },
-] as const;
+  { label: "Home",          href: "#home", isRoute: false },
+  { label: "Find Tutors",   href: "/find-tutors", isRoute: true },
+  { label: "How It Works",  href: "#how-it-works", isRoute: false },
+  { label: "Pricing",       href: "#pricing", isRoute: false },
+  { label: "Become a Tutor",href: "#become-tutor", isRoute: false },
+];
+
+const HandDrawnUnderline = () => (
+  <svg
+    className="absolute -bottom-2 left-0 w-full h-2 text-[#ef4444]"
+    preserveAspectRatio="none"
+    viewBox="0 0 100 10"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M0 5 Q 25 8, 50 5 T 100 4"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+      strokeDasharray="110"
+      strokeDashoffset="110"
+      style={{
+        animation: "draw-underline 0.35s ease-out forwards",
+      }}
+    />
+  </svg>
+);
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [incompleteProfile, setIncompleteProfile] = useState(false);
+  const [activeLink, setActiveLink] = useState("Home");
   const { user, signOut } = useAuth();
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -32,177 +49,103 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    if (!user || user.user_metadata?.role !== "tutor") {
-      setIncompleteProfile(false);
-      return;
-    }
-    supabase
-      .from("tutor_profiles")
-      .select("hourly_rate")
-      .eq("user_id", user.id)
-      .single()
-      .then(({ data }) => {
-        setIncompleteProfile(!data?.hourly_rate || data.hourly_rate === 0);
-      });
-  }, [user]);
-
-  const toggleTheme = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
-
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 300, damping: 40 });
-
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-200 ${
-        scrolled
-          ? "border-b bg-background/95 backdrop-blur-xl shadow-soft"
-          : "bg-transparent"
+      className={`fixed top-0 w-full z-50 transition-all duration-200 ${
+        scrolled ? "bg-white/90 backdrop-blur-md border-b-[2px] border-[#2d2d2d]" : "bg-transparent"
       }`}
     >
-      {/* Scroll progress bar */}
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-accent"
-        style={{ scaleX }}
-      />
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container max-w-[1400px] mx-auto px-6 h-24 flex items-center justify-between">
+        
         {/* Logo */}
-        <a href="#home" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold text-foreground">Tutor Quest</span>
-        </a>
+        <Link to="/" className="flex items-center gap-2 group">
+          <img src="/logo.png?v=3" alt="Tutor Quest Logo" className="w-[52px] h-[52px] object-contain drop-shadow-[2px_2px_0px_rgba(45,45,45,0.2)] -ml-2" />
+          <span className="font-kalam text-[28px] font-bold text-[#2d2d2d] tracking-tight">
+            Tutor Quest
+          </span>
+        </Link>
 
-        {/* Desktop Nav */}
-        <div className="hidden items-center gap-8 lg:flex">
-          {navLinks.map((l) =>
-            "isRoute" in l && l.isRoute ? (
-              <Link
-                key={l.href}
-                to={l.href}
-                className="nav-link-underline text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {l.label}
+        {/* Desktop Links */}
+        <div className="hidden lg:flex items-center gap-8">
+          {navLinks.map((link) => {
+            const isActive = activeLink === link.label;
+            const className = `relative font-patrick text-[17px] font-medium transition-colors group ${
+              isActive ? "text-[#ef4444]" : "text-gray-600 hover:text-[#2d2d2d]"
+            }`;
+            
+            const content = (
+              <>
+                {link.label}
+                <span className={`absolute -bottom-2 left-0 w-full h-2 text-[#ef4444] transition-opacity duration-150 ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                  <HandDrawnUnderline />
+                </span>
+              </>
+            );
+
+            return link.isRoute ? (
+              <Link key={link.label} to={link.href} className={className} onClick={() => setActiveLink(link.label)}>
+                {content}
               </Link>
             ) : (
-              <a
-                key={l.href}
-                href={l.href}
-                className="nav-link-underline text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {l.label}
+              <a key={link.label} href={link.href} className={className} onClick={() => setActiveLink(link.label)}>
+                {content}
               </a>
-            )
-          )}
+            );
+          })}
         </div>
 
-        {/* Desktop Actions */}
-        <div className="hidden items-center gap-2 lg:flex">
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="h-9 w-9 rounded-full"
-            >
-              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          )}
+        {/* Right Actions */}
+        <div className="hidden lg:flex items-center gap-6">
+          <div className="flex items-end gap-5 border-r-[2px] border-[#2d2d2d] pr-6">
+            {user && (
+              <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"} className="flex flex-col items-center text-[#2d2d2d] hover:-translate-y-0.5 transition-transform">
+                <LayoutDashboard className="w-[22px] h-[22px] mb-0.5" strokeWidth={2.5} />
+                <span className="text-[11px] font-patrick font-medium leading-none">Dashboard</span>
+              </Link>
+            )}
+            <NotificationBell />
+            <Link to="/messages" className="text-[#2d2d2d] hover:-translate-y-0.5 transition-transform pb-1">
+              <MessageSquare className="w-[22px] h-[22px]" strokeWidth={2.5} />
+            </Link>
+            <Link to="/sessions" className="flex flex-col items-center text-[#2d2d2d] hover:-translate-y-0.5 transition-transform">
+              <CalendarDays className="w-[22px] h-[22px] mb-0.5" strokeWidth={2.5} />
+              <span className="text-[11px] font-patrick font-medium leading-none">Sessions</span>
+            </Link>
+          </div>
+
           {user ? (
-            <>
-              <NotificationBell />
-              <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground">
-                <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"}>
-                  <LayoutDashboard className="h-4 w-4" /> Dashboard
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground">
-                <Link to="/messages"><MessageSquare className="h-4 w-4" /> Messages</Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground">
-                <Link to="/sessions"><CalendarDays className="h-4 w-4" /> Sessions</Link>
-              </Button>
-              {incompleteProfile && (
-                <Button variant="outline" size="sm" asChild className="gap-1.5 border-accent text-accent-foreground">
-                  <Link to="/tutor/setup"><UserCog className="h-4 w-4" /> Complete Profile</Link>
-                </Button>
-              )}
-              <Button variant="ghost" size="sm" onClick={signOut} className="gap-1.5 text-muted-foreground hover:text-foreground">
-                <LogOut className="h-4 w-4" /> Sign Out
-              </Button>
-            </>
+            <button
+              onClick={signOut}
+              className="flex items-center gap-2 bg-white text-[#2d2d2d] font-sans text-xs font-bold px-4 py-2 border-[2px] border-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] hover:bg-gray-50 transition-all hover:-translate-y-0.5"
+              style={{ borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px" }}
+            >
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
           ) : (
-            <>
-              <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
-                <Link to="/login">Log in</Link>
-              </Button>
-              <Button size="sm" asChild className="rounded-full px-5">
-                <Link to="/signup">Get Started</Link>
-              </Button>
-            </>
+            <button
+              onClick={() => window.location.href = '/login'}
+              className="flex items-center gap-2 bg-white text-[#2d2d2d] font-sans text-xs font-bold px-4 py-2 border-[2px] border-[#2d2d2d] shadow-[2px_2px_0px_#2d2d2d] hover:bg-gray-50 transition-all hover:-translate-y-0.5"
+              style={{ borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px" }}
+            >
+              Sign In
+            </button>
           )}
         </div>
 
-        {/* Mobile */}
-        <div className="flex items-center gap-2 lg:hidden">
-          {mounted && (
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 rounded-full" aria-label="Toggle theme">
-              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          )}
-          <button onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu" className="p-1">
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
+        {/* Mobile Toggle */}
+        <button className="lg:hidden p-2 text-[#2d2d2d]" onClick={() => setMobileOpen(!mobileOpen)}>
+          {mobileOpen ? <X className="w-6 h-6" strokeWidth={2.5} /> : <Menu className="w-6 h-6" strokeWidth={2.5} />}
+        </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="border-t bg-background px-6 pb-6 pt-4 lg:hidden">
-          <div className="flex flex-col gap-3">
-            {navLinks.map((l) =>
-              "isRoute" in l && l.isRoute ? (
-                <Link key={l.href} to={l.href} onClick={() => setMobileOpen(false)} className="py-1.5 text-body-sm font-medium text-muted-foreground hover:text-foreground">
-                  {l.label}
-                </Link>
-              ) : (
-                <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="py-1.5 text-body-sm font-medium text-muted-foreground hover:text-foreground">
-                  {l.label}
-                </a>
-              )
-            )}
-            <div className="mt-2 flex flex-col gap-2 border-t pt-4">
-              {user ? (
-                <>
-                  <Button variant="outline" size="sm" className="justify-start gap-1.5" asChild>
-                    <Link to={user.user_metadata?.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"} onClick={() => setMobileOpen(false)}>
-                      <LayoutDashboard className="h-4 w-4" /> Dashboard
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="sm" className="justify-start gap-1.5" asChild>
-                    <Link to="/messages" onClick={() => setMobileOpen(false)}><MessageSquare className="h-4 w-4" /> Messages</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" className="justify-start gap-1.5" asChild>
-                    <Link to="/sessions" onClick={() => setMobileOpen(false)}><CalendarDays className="h-4 w-4" /> Sessions</Link>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="justify-start gap-1.5 text-muted-foreground" onClick={() => { signOut(); setMobileOpen(false); }}>
-                    <LogOut className="h-4 w-4" /> Sign Out
-                  </Button>
-                </>
-              ) : (
-                <div className="flex gap-3">
-                  <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <Link to="/login" onClick={() => setMobileOpen(false)}>Log in</Link>
-                  </Button>
-                  <Button size="sm" className="flex-1 rounded-full" asChild>
-                    <Link to="/signup" onClick={() => setMobileOpen(false)}>Get Started</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="lg:hidden absolute top-24 left-0 w-full bg-white border-b-[2px] border-[#2d2d2d] p-6 flex flex-col gap-4 shadow-lg">
+          {navLinks.map((link) => (
+            <a key={link.label} href={link.href} className="font-patrick text-[18px] font-medium text-[#2d2d2d]">
+              {link.label}
+            </a>
+          ))}
         </div>
       )}
     </nav>

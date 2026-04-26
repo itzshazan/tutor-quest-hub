@@ -144,7 +144,7 @@ const TutorMapView = ({ tutors, searchCoords }: TutorMapViewProps) => {
     <div className="space-y-2">
       <div
         ref={mapRef}
-        className="h-[500px] w-full rounded-xl border bg-muted overflow-hidden"
+        className="h-[320px] w-full rounded-xl border bg-muted overflow-hidden sm:h-[360px]"
         style={{ zIndex: 1 }}
       />
       {tutorsWithoutCoords > 0 && (

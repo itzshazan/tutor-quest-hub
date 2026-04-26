@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Patrick+Hand&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -34,75 +35,34 @@
     --input: 220 13% 91%;
     --ring: 222 47% 18%;
 
+
     --radius: 0.75rem;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 43 96% 56%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 30% 22%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 222 30% 22%;
-    --sidebar-ring: 43 96% 56%;
-
-    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.04), 0 1px 2px -1px hsl(0 0% 0% / 0.04);
-    --shadow-elevated: 0 4px 6px -1px hsl(0 0% 0% / 0.05), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
-    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.04), 0 0 0 1px hsl(220 13% 91% / 0.6);
-    --shadow-card-hover: 0 8px 24px -4px hsl(222 47% 18% / 0.08), 0 0 0 1px hsl(220 13% 91%);
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 222 47% 11%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 222 47% 18%;
   }
 
-  .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 20% 95%;
-
-    --card: 222 40% 10%;
-    --card-foreground: 210 20% 95%;
-
-    --popover: 222 40% 10%;
-    --popover-foreground: 210 20% 95%;
-
-    --primary: 43 96% 56%;
-    --primary-foreground: 222 47% 11%;
-
-    --secondary: 222 30% 16%;
-    --secondary-foreground: 210 20% 90%;
-
-    --muted: 222 30% 14%;
-    --muted-foreground: 220 9% 55%;
-
-    --accent: 43 96% 56%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
-    --ring: 43 96% 56%;
-
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 43 96% 56%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 30% 16%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 222 30% 18%;
-    --sidebar-ring: 43 96% 56%;
-
-    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
-    --shadow-elevated: 0 4px 6px -1px hsl(0 0% 0% / 0.3);
-    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.2), 0 0 0 1px hsl(222 30% 18%);
-    --shadow-card-hover: 0 8px 24px -4px hsl(0 0% 0% / 0.3), 0 0 0 1px hsl(222 30% 22%);
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    /* Base text color */
+    color: #2d2d2d;
+    /* Patrick Hand is the new base font */
+    font-family: 'Patrick Hand', cursive;
+    /* Paper texture background globally */
+    background-color: #fdfbf7;
+    background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+    background-size: 24px 24px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   html {
@@ -131,3 +91,264 @@
   transform: scaleX(1);
   transform-origin: left;
 }
+
+/* ═══════════════════════════════════════════════════════
+   HAND-DRAWN DESIGN SYSTEM UTILITIES
+   ═══════════════════════════════════════════════════════ */
+
+/* Wobbly border radii — reusable inline-style helpers */
+.hd-wobbly {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+.hd-wobbly-md {
+  border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+}
+.hd-wobbly-sm {
+  border-radius: 120px 8px 100px 8px / 8px 100px 8px 120px;
+}
+.hd-wobbly-alt {
+  border-radius: 8px 200px 8px 180px / 180px 8px 200px 8px;
+}
+
+/* Hard offset shadow helpers */
+.hd-shadow-sm  { box-shadow: 3px 3px 0px 0px #2d2d2d; }
+.hd-shadow-md  { box-shadow: 4px 4px 0px 0px #2d2d2d; }
+.hd-shadow-lg  { box-shadow: 6px 6px 0px 0px #2d2d2d; }
+.hd-shadow-xl  { box-shadow: 8px 8px 0px 0px #2d2d2d; }
+.hd-shadow-red { box-shadow: 4px 4px 0px 0px #ff4d4d; }
+.hd-shadow-blue{ box-shadow: 4px 4px 0px 0px #2d5da1; }
+
+/* Tape strip decoration */
+.hd-tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1.5deg);
+  width: 64px;
+  height: 22px;
+  background: rgba(200, 200, 200, 0.55);
+  border-radius: 3px;
+  pointer-events: none;
+}
+.hd-tape-left {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  transform: rotate(-3deg);
+  width: 56px;
+  height: 20px;
+  background: rgba(200, 200, 200, 0.55);
+  border-radius: 3px;
+  pointer-events: none;
+}
+.hd-tape-right {
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  transform: rotate(3deg);
+  width: 56px;
+  height: 20px;
+  background: rgba(200, 200, 200, 0.55);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* Thumbtack decoration */
+.hd-tack {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: #ff4d4d;
+  border-radius: 50%;
+  box-shadow: 2px 2px 0px 0px #2d2d2d;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Wavy underline for HD nav links */
+.hd-nav-link {
+  position: relative;
+  display: inline-block;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1rem;
+  color: #2d2d2d;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.hd-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='4' viewBox='0 0 40 4'%3E%3Cpath d='M0 2 Q5 0 10 2 Q15 4 20 2 Q25 0 30 2 Q35 4 40 2' stroke='%23ff4d4d' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 40px 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.hd-nav-link:hover::after {
+  opacity: 1;
+}
+.hd-nav-link:hover {
+  color: #ff4d4d;
+}
+
+/* HD Footer link strikethrough hover */
+.hd-footer-link {
+  font-family: 'Patrick Hand', cursive;
+  color: #2d2d2d;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.hd-footer-link:hover {
+  text-decoration: line-through;
+  color: #ff4d4d;
+}
+
+/* HD dashed divider */
+.hd-divider {
+  border: none;
+  border-top: 2px dashed #2d2d2d;
+  opacity: 0.25;
+  margin: 0;
+}
+
+/* Speech bubble tail for testimonials */
+.hd-speech-bubble {
+  position: relative;
+}
+.hd-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -18px;
+  left: 32px;
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 20px solid #ffffff;
+}
+.hd-speech-bubble-border::before {
+  content: '';
+  position: absolute;
+  bottom: -22px;
+  left: 30px;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 23px solid #2d2d2d;
+}
+
+/* Keyframe animations (supplemental — Tailwind handles the classes) */
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50%       { transform: translateY(-12px) rotate(2deg); }
+}
+@keyframes jiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-2deg); }
+  75%      { transform: rotate(2deg); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-1deg); }
+  50%      { transform: rotate(1deg); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes pop-in {
+  0%   { transform: scale(0) rotate(-8deg); opacity: 0; }
+  70%  { transform: scale(1.15) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes stamp {
+  0%   { transform: scale(1.5) rotate(-6deg); opacity: 0; }
+  60%  { transform: scale(0.9) rotate(2deg); opacity: 1; }
+  80%  { transform: scale(1.05) rotate(-1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-4px) rotate(-1deg); }
+  30%      { transform: translateX(4px) rotate(1deg); }
+  45%      { transform: translateX(-3px) rotate(-0.5deg); }
+  60%      { transform: translateX(3px) rotate(0.5deg); }
+  75%      { transform: translateX(-2px); }
+  90%      { transform: translateX(2px); }
+}
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+@keyframes pencil-draw {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes draw-underline {
+  from { stroke-dashoffset: 110; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Marquee container */
+.hd-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 22s linear infinite;
+}
+.hd-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* SVG pencil draw animation */
+.hd-draw-path {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: pencil-draw 0.9s ease-out 0.5s forwards;
+}
+
+/* Marker-style hover underline for section feature titles */
+.hd-marker-title {
+  position: relative;
+  display: inline-block;
+}
+.hd-marker-title::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: #ff4d4d;
+  border-radius: 2px;
+  transition: width 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.group:hover .hd-marker-title::after {
+  width: 100%;
+}
+
+/* Gradient-shift progress bar variant */
+.hd-progress-bar {
+  background: linear-gradient(90deg, #ff4d4d, #ff8c42, #ff4d4d);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* hd-page: paper texture + Patrick Hand font wrapper */
+.hd-page {
+  font-family: 'Patrick Hand', cursive;
+  background-color: #fdfbf7;
+  background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+

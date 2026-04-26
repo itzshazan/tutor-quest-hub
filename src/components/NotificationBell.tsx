@@ -44,83 +44,81 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative"
+      <div
+        className="relative cursor-pointer hover:-translate-y-0.5 transition-transform pb-1"
         onClick={() => setOpen(!open)}
         aria-label="Notifications"
+        role="button"
+        tabIndex={0}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="w-[22px] h-[22px] text-[#2d2d2d]" strokeWidth={2.5} />
         {unreadCount > 0 && (
-          <Badge
-            variant="destructive"
-            className="absolute -right-1 -top-1 h-5 min-w-[20px] rounded-full px-1 text-xs"
-          >
+          <div className="absolute -top-1 -right-1.5 min-w-[16px] h-4 bg-[#ef4444] text-white rounded-full flex items-center justify-center text-[9px] font-bold px-1">
             {unreadCount > 9 ? "9+" : unreadCount}
-          </Badge>
+          </div>
         )}
-      </Button>
+      </div>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95">
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <h3 className="font-semibold">Notifications</h3>
+        <div 
+          className="absolute right-0 top-full z-50 mt-4 w-[300px] bg-white border-[3px] border-[#2d2d2d] shadow-[4px_4px_0px_#2d2d2d] animate-in fade-in-0 zoom-in-95 overflow-hidden flex flex-col"
+          style={{ borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px", maxHeight: "400px" }}
+        >
+          <div className="flex items-center justify-between border-b-[2px] border-[#2d2d2d] px-3 py-2.5 bg-white shrink-0">
+            <h3 className="font-kalam text-lg font-bold text-[#2d2d2d]">Notifications</h3>
             {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto py-1 text-xs"
+              <button
+                className="flex items-center text-[13px] font-patrick font-medium text-gray-600 hover:text-[#2d2d2d] transition-colors"
                 onClick={() => markAllAsRead()}
               >
-                <CheckCheck className="mr-1 h-3 w-3" />
+                <CheckCheck className="mr-1 h-3.5 w-3.5" />
                 Mark all read
-              </Button>
+              </button>
             )}
           </div>
 
-          <ScrollArea className="max-h-80">
+          <div className="overflow-y-auto flex-1 min-h-0 custom-scrollbar">
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <div className="flex items-center justify-center py-6">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#2d2d2d] border-t-transparent" />
               </div>
             ) : notifications.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
+              <div className="py-6 text-center text-[14px] font-patrick text-gray-500">
                 No notifications yet
               </div>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y-[2px] divide-[#2d2d2d]/10">
                 {notifications.map((notif) => (
                   <button
                     key={notif.id}
                     onClick={() => handleNotificationClick(notif)}
                     className={cn(
-                      "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50",
-                      !notif.read_at && "bg-accent/20"
+                      "flex w-full items-start gap-2.5 px-3 py-3 text-left transition-colors hover:bg-gray-50",
+                      !notif.read_at ? "bg-[#fef3c7]" : "bg-white"
                     )}
                   >
-                    <span className="mt-0.5 text-lg">
+                    <span className="mt-1 text-xl">
                       {TYPE_ICONS[notif.type] || TYPE_ICONS.info}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className={cn("text-sm", !notif.read_at && "font-medium")}>
+                      <p className={cn("font-kalam text-[16px] text-[#2d2d2d] leading-tight", !notif.read_at && "font-bold")}>
                         {notif.title}
                       </p>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
+                      <p className="font-patrick text-[14px] text-gray-600 leading-snug mt-0.5">
                         {notif.message}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-1 font-patrick text-[12px] text-gray-500">
                         {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true })}
                       </p>
                     </div>
                     {notif.link && (
-                      <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <ExternalLink className="h-3.5 w-3.5 text-[#2d2d2d] shrink-0 mt-1" strokeWidth={2.5} />
                     )}
                   </button>
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
       )}
     </div>
