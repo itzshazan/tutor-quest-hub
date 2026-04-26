@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Markdown files
+*.md
+!README.md
+
+# Database dumps
+/complete_schema.sql
