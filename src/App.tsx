@@ -144,6 +144,7 @@ const App = () => (
               <main id="main-content">
                 <AnimatedRoutes />
               </main>
+
             </ErrorBoundary>
           </AuthProvider>
         </BrowserRouter>
